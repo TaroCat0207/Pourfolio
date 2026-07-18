@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>pourfolio-个人鸡尾酒记录</title>
+<meta name="theme-color" content="#fdf5ea" id="meta-theme" />
+<script>
+/* 同步主题恢复 —— 在 CSS 渲染前读取 localStorage，避免浅色闪屏 */
+(function(){
+  var themes={light:{bg:"#fdf5ea",bg2:"#f8ead6",card:"#ffffff",card2:"#fbefdd",line:"#ecd6bb",txt:"#2c1c12",sub:"#7a5e4a",dim:"#a98d75",gold:"#e8a11f",gold2:"#f4b733",wine:"#d5342f",wine2:"#e85a4f",teal:"#2f9e8f",purple:"#9b5fc7",green:"#4f9e5b",blue:"#3f7fc7"},dark:{bg:"#12100f",bg2:"#1b1715",card:"#221c1a",card2:"#2b2320",line:"#3a2f2a",txt:"#f4ece6",sub:"#b7a79c",dim:"#8a7a70",gold:"#d9a441",gold2:"#f0c674",wine:"#8e2f3f",wine2:"#c0455a",teal:"#3fae9e",purple:"#9b6bd6",green:"#5bbf7a",blue:"#5a94d6"}};
+  var raw=localStorage.getItem('pf_theme');
+  var t=null;
+  try{t=JSON.parse(raw);}catch(e){}
+  if(t&&t.theme&&themes[t.theme]){
+    var v=themes[t.theme];var rs=document.documentElement.style;
+    for(var k in v)rs.setProperty('--'+k,v[k]);
+    /* 叠加自定义颜色：基础主题变量已应用，仅覆盖 gold */
+    if(t.accent){rs.setProperty('--gold',t.accent);window.__pf_accent=t.accent;}
+    var m=document.getElementById('meta-theme');
+    if(m)m.setAttribute('content',t.accent||v.bg);
+    window.__pf_theme=t.theme;
+  }else if(t&&t.accent){
+    var rs=document.documentElement.style;
+    /* 旧数据兼容：仅有 accent 时也恢复基础浅色主题变量，确保背景色正确 */
+    var lv=themes.light;
+    for(var k in lv)rs.setProperty('--'+k,lv[k]);
+    rs.setProperty('--gold',t.accent);
+    var m=document.getElementById('meta-theme');
+    if(m)m.setAttribute('content',t.accent);
+    window.__pf_accent=t.accent;
+  }
+})();
+</script>
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="pourfolio" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon.svg" />
+<style>
+  :root{
+    --bg:#fdf5ea; --bg2:#f8ead6; --card:#ffffff; --card2:#fbefdd;
+    --line:#ecd6bb; --txt:#2c1c12; --sub:#7a5e4a; --dim:#a98d75;
+    --gold:#e8a11f; --gold2:#f4b733; --wine:#d5342f; --wine2:#e85a4f;
+    --teal:#2f9e8f; --purple:#9b5fc7; --green:#4f9e5b; --blue:#3f7fc7;
+    --radius:12px; --shadow:0 8px 28px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(120% 60% at 50% 0%,#241a17 0%,#0c0a09 60%);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:var(--txt);
+  }
+  /* phone shell */
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:96vh;background:var(--bg);
+    border-radius:44px;position:relative;overflow:hidden;box-shadow:var(--shadow),0 0 0 10px #050403,0 0 0 12px #2a211d;
+    display:flex;flex-direction:column;
+  }
+  /* 手机端优先：真机铺满视口并适配刘海安全区；桌面仍保留 390 外壳预览 */
+  @media (max-width:480px){
+    html{height:100%;min-height:-webkit-fill-available;}
+    body{height:100%;min-height:-webkit-fill-available;overflow:hidden;
+         align-items:stretch;padding:0;background:var(--bg);}
+    .phone{width:100%;height:100%;height:-webkit-fill-available;max-height:none;
+           border:0;border-radius:0;box-shadow:none;
+           padding-top:max(43px, env(safe-area-inset-top));}
+    .notch{display:none;}
+    .screen{padding-top:8px;}
+  }
+  /* PWA standalone 全尺寸覆盖：桌面 PWA 视口可能宽于 480px */
+  @media (display-mode: standalone){
+    html{height:100%;min-height:-webkit-fill-available;}
+    body{min-height:100vh;min-height:-webkit-fill-available;overflow:hidden;
+         align-items:stretch;padding:0;background:var(--bg);}
+    .phone{width:100%;height:100vh;height:-webkit-fill-available;max-height:none;
+           border:0;border-radius:0;box-shadow:none;
+           padding-top:max(43px, env(safe-area-inset-top));}
+    .notch{display:none;}
+    .screen{padding-top:8px;padding-bottom:calc(96px + env(safe-area-inset-bottom));}
+  }
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#050403;border-bottom-left-radius:16px;border-bottom-right-radius:16px;z-index:60;}
+  /* screen scroll */
+  .screen{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch;padding-bottom:calc(96px + env(safe-area-inset-bottom));}
+  .screen::-webkit-scrollbar{width:0;}
+  .page{display:none;animation:fade .32s ease;}
+  .page.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .hd{padding:6px 20px 4px;}
+  .hd h1{font-size:22px;margin:0;letter-spacing:.5px;}
+  .hd .sub{color:var(--dim);font-size:12.5px;margin-top:2px;}
+
+  /* spending card */
+  .spend-card{margin:12px 16px 4px;background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 18%,var(--card)),var(--card));border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+  .spend-card::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(217,164,65,.22),transparent 70%);}
+  .mode-switch{display:flex;background:color-mix(in srgb,var(--txt) 10%,transparent);border-radius:11px;padding:3px;gap:2px;margin-bottom:12px;position:relative;z-index:2;}
+  .mode-switch button{flex:1;border:0;background:transparent;color:var(--sub);font-size:12.5px;font-weight:600;padding:7px 0;border-radius:9px;cursor:pointer;transition:.25s;}
+  .mode-switch button.on{background:linear-gradient(135deg,var(--gold),#b9822f);color:#241a10;box-shadow:0 3px 10px rgba(217,164,65,.35);}
+  .spend-main{display:flex;align-items:baseline;gap:8px;position:relative;z-index:2;}
+  .spend-main .cur{font-size:18px;color:var(--gold2);font-weight:700;}
+  .spend-main .amt{font-size:38px;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums;}
+  .spend-main .lbl{color:var(--dim);font-size:12px;margin-left:auto;}
+  .spend-quick{display:flex;gap:6px;margin-top:12px;position:relative;z-index:2;}
+  .spend-quick .q{flex:1;background:color-mix(in srgb,var(--txt) 4%,transparent);border:1px solid var(--line);border-radius:11px;padding:8px 6px;text-align:center;cursor:pointer;transition:.2s;}
+  .spend-quick .q:active{transform:scale(.96);}
+  .spend-quick .q .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .spend-quick .q .k{font-size:10.5px;color:var(--dim);margin-top:2px;}
+  .social-extra{margin-top:12px;position:relative;z-index:2;display:none;}
+  .social-extra.show{display:block;animation:fade .3s;}
+  .social-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px dashed var(--line);font-size:13px;}
+  .social-row .name{color:var(--sub);display:flex;align-items:center;gap:7px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .social-row .val{font-weight:700;font-variant-numeric:tabular-nums;}
+  .social-row .drill{color:var(--dim);font-size:11px;}
+
+  .budget{margin:10px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;}
+  .budget .top{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:7px;}
+  .budget .bar{height:8px;background:rgba(0,0,0,.35);border-radius:6px;overflow:hidden;}
+  .budget .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .8s cubic-bezier(.2,.8,.2,1);}
+
+  .sec-title{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px;}
+  .sec-title h2{font-size:15px;margin:0;}
+  .sec-title .act{font-size:12px;color:var(--gold2);cursor:pointer;}
+  /* collapsible sections (Me page) */
+  .coll-h{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:16px 16px 8px;}
+  .coll-h h2{font-size:15px;margin:0;}
+  .coll-h .chev{width:20px;height:20px;color:var(--dim);transition:transform .2s;flex:0 0 auto;}
+  .coll.collapsed .chev{transform:rotate(-90deg);}
+  .coll.collapsed .coll-b{display:none;}
+  .coll-b{padding-bottom:6px;}
+
+  /* cocktail cards */
+  .timeline{padding:0 16px;}
+  .tl-day{color:var(--dim);font-size:11.5px;font-weight:600;margin:14px 4px 8px;letter-spacing:.5px;}
+  .ck{display:flex;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;transition:.2s;}
+  .ck:active{transform:scale(.985);}
+  .ck .ck-photo{position:relative;flex:0 0 86px;width:86px;min-height:120px;background-size:cover;background-position:center;background-color:var(--card2);}
+  .ck .ck-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to right,rgba(24,20,18,0) 70%,rgba(24,20,18,.55));}
+  .ck .ck-photo .src{position:absolute;top:8px;left:8px;z-index:2;font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:20px;backdrop-filter:blur(6px);}
+  .ck .ck-photo .fav{position:absolute;bottom:8px;right:8px;z-index:2;font-size:15px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));}
+  .ck .ck-body{flex:1;min-width:0;padding:11px 13px 12px;display:flex;flex-direction:column;gap:5px;}
+  .ck .ck-top{display:flex;align-items:flex-start;gap:8px;}
+  .ck .ck-nm{font-size:16px;font-weight:800;color:var(--txt);line-height:1.25;flex:1;min-width:0;}
+  .ck .ck-top{align-items:center;}
+.ck .ck-acts{display:flex;gap:5px;flex:0 0 auto;align-items:center;}
+.ck .ck-ic{width:26px;height:26px;border-radius:8px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;color:var(--sub);}
+.ck .ck-ic svg{width:14px;height:14px;display:block;}
+.ck .ck-ic:active{transform:scale(.9);}
+.ck .ck-ic.pen:active{background:rgba(217,164,65,.22);}
+.ck .ck-ic.del{color:var(--wine2);}
+.ck .ck-ic.conf{background:var(--wine);border-color:var(--wine);color:#fff;}
+  .ck .ck-bar{font-size:11.5px;color:var(--gold2);}
+  .ck .ck-meta{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--sub);margin-top:1px;flex-wrap:wrap;}
+  .ck .ck-meta .price{color:var(--gold2);font-weight:700;font-size:13px;}
+  .ck .ck-meta .abv{background:rgba(255,255,255,.05);padding:2px 7px;border-radius:6px;font-size:11px;}
+  .ck .tags{display:flex;gap:6px;flex-wrap:wrap;}
+  .tag{font-size:10.5px;padding:3px 9px;border-radius:20px;background:rgba(217,164,65,.12);color:var(--gold2);border:1px solid rgba(217,164,65,.25);}
+  .ck .note{font-size:11.5px;color:var(--sub);margin-top:1px;line-height:1.5;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .ck .stars{color:var(--gold);font-size:12px;letter-spacing:1px;}
+
+  /* source badge colors — 自费自饮永远跟随主题色，其他三种用固定适配色 */
+  .src-SELF{background:color-mix(in srgb,var(--gold2) 18%,transparent);color:var(--gold2);border:1px solid color-mix(in srgb,var(--gold2) 40%,transparent);}
+  .src-TASTE{background:rgba(90,148,214,.2);color:#a9cbf0;border:1px solid rgba(90,148,214,.35);}
+  .src-TREATED{background:rgba(155,107,214,.2);color:#cbb0f0;border:1px solid rgba(155,107,214,.35);}
+  .src-TREAT_OTHERS{background:rgba(63,174,158,.2);color:#8fd0c4;border:1px solid rgba(63,174,158,.35);}
+  .legend-dot.SELF{background:var(--gold);} .legend-dot.TREAT_OTHERS{background:#3fae9e;}
+  .legend-dot.TREATED{background:var(--purple);} .legend-dot.TASTE{background:var(--blue);}
+
+  /* dashboard */
+  .panel{margin:0 16px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;}
+  .panel h3{margin:0 0 14px;font-size:13.5px;}
+  .bars{display:flex;align-items:flex-end;gap:9px;height:130px;}
+  .bars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
+  .bars .col .bar{width:70%;border-radius:7px 7px 3px 3px;background:linear-gradient(to top,var(--gold),var(--gold2));transition:height 1s cubic-bezier(.2,.8,.2,1);position:relative;min-height:4px;}
+  .bars .col .bar span{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--sub);white-space:nowrap;}
+  .bars .col .x{font-size:10.5px;color:var(--dim);}
+  .donut-wrap{display:flex;align-items:center;gap:16px;}
+  .donut{flex:0 0 128px;}
+  .donut-legend{flex:1;display:flex;flex-direction:column;gap:9px;}
+  .donut-legend .row{display:flex;align-items:center;gap:8px;font-size:12.5px;}
+  .donut-legend .row .lg{width:11px;height:11px;border-radius:3px;flex:0 0 11px;}
+  .donut-legend .row .pv{margin-left:auto;color:var(--sub);font-variant-numeric:tabular-nums;}
+  .cloud{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .cloud .w{color:var(--gold2);font-weight:700;}
+  .top-list .ti{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .top-list .ti:last-child{border-bottom:0;}
+  .top-list .ti .rk{width:22px;height:22px;border-radius:7px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--gold2);flex:0 0 22px;}
+  .top-list .ti .rk.g1{background:linear-gradient(135deg,var(--gold),#b9822f);color:#241a10;}
+  .top-list .ti .info{flex:1;font-size:13px;}
+  .top-list .ti .info small{color:var(--dim);font-size:11px;}
+  .top-list .ti .rv{font-size:12.5px;color:var(--gold2);font-weight:700;}
+  .rank-more{margin-top:2px;text-align:center;font-size:12.5px;color:var(--gold2);padding:10px 0 2px;cursor:pointer;}
+
+  /* bars page */
+  .barcard{margin:0 16px 12px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:.2s;}
+  .barcard:active{transform:scale(.985);}
+  .barcard .top{height:96px;background-size:cover;background-position:center;position:relative;}
+  .barcard .top .grad{position:absolute;inset:0;background:linear-gradient(to right,rgba(18,16,15,.9),transparent 80%);}
+  .barcard .top .nm{position:absolute;left:14px;bottom:10px;font-size:16px;font-weight:800;text-shadow:0 2px 5px #000;}
+  .barcard .top .fav{position:absolute;top:10px;right:12px;font-size:17px;}
+  .barcard .b{padding:11px 14px;}
+  .barcard .loc{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:5px;}
+  .barcard .rat{display:flex;gap:14px;margin-top:9px;}
+  .barcard .rat .r{font-size:11px;color:var(--dim);}
+  .barcard .rat .r b{color:var(--gold2);font-size:13px;font-weight:700;}
+  .barcard .spend{margin-top:9px;font-size:12px;color:var(--sub);display:flex;justify-content:space-between;}
+  .barcard .spend b{color:var(--txt);}
+
+  /* profile */
+  .prof-head{display:flex;align-items:center;gap:14px;padding:14px 20px;}
+  .prof-head .av{width:58px;height:58px;border-radius:20px;background:linear-gradient(135deg,var(--wine),var(--gold));display:flex;align-items:center;justify-content:center;font-size:26px;}
+  .prof-head .nm{font-size:18px;font-weight:800;}
+  .prof-head .st{font-size:12px;color:var(--dim);margin-top:3px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:4px 16px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px;}
+  .stat .v{font-size:22px;font-weight:800;color:var(--gold2);font-variant-numeric:tabular-nums;}
+  .stat .k{font-size:11.5px;color:var(--dim);margin-top:3px;}
+  .menu{margin:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .menu .mi{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);font-size:13.5px;cursor:pointer;transition:.15s;}
+  .menu .mi:last-child{border-bottom:0;}
+  .menu .mi:active{background:var(--card2);}
+  .menu .mi .ic{font-size:17px;width:22px;text-align:center;}
+  .menu .mi .ar{margin-left:auto;color:var(--dim);}
+
+  /* tabbar */
+  .tabbar{position:absolute;bottom:0;left:0;right:0;height:calc(78px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;align-items:flex-start;padding-top:9px;padding-bottom:env(safe-area-inset-bottom);z-index:50;}
+  .tabbar .tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--dim);cursor:pointer;font-size:10.5px;transition:.2s;}
+  .tabbar .tb .ic{font-size:20px;}
+  .tabbar .tb.on{color:var(--gold2);}
+  .tabbar .tb.compose{flex:0 0 62px;}
+  .tabbar .tb.compose .ic{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold2),#b9822f);color:#241a10;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 5px 16px rgba(217,164,65,.5);margin-top:-20px;}
+  .tabbar .tb.compose{font-size:9.5px;color:var(--sub);}
+  .fab{position:absolute;bottom:52px;left:50%;transform:translateX(-50%);width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--gold2),#b9822f);display:flex;align-items:center;justify-content:center;font-size:30px;color:#241a10;box-shadow:0 6px 20px rgba(217,164,65,.5);z-index:55;cursor:pointer;border:4px solid var(--bg);transition:.2s;}
+  .fab:active{transform:translateX(-50%) scale(.9);}
+
+  /* sheet / modal */
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:80;opacity:0;pointer-events:none;transition:.3s;}
+  .mask.show{opacity:1;pointer-events:auto;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg2);border-top-left-radius:26px;border-top-right-radius:26px;z-index:90;transform:translateY(100%);transition:transform .38s cubic-bezier(.2,.85,.25,1);max-height:90%;overflow-y:auto;box-shadow:0 -10px 40px rgba(0,0,0,.5);}
+  .sheet.show{transform:translateY(0);}
+  .sheet::-webkit-scrollbar{width:0;}
+  .sheet .grip{width:40px;height:4px;border-radius:3px;background:var(--line);margin:11px auto 4px;}
+  .sheet .sh-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;}
+  .sheet .sh-hd h3{margin:0;font-size:17px;}
+  .sheet .sh-hd .x{font-size:20px;color:var(--dim);cursor:pointer;padding:4px;}
+  .form{padding:0 20px 24px;}
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:12px;color:var(--sub);margin-bottom:7px;font-weight:600;}
+  .field input,.field textarea,.field select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;color:var(--txt);font-size:14px;font-family:inherit;outline:none;transition:.2s;}
+  .field input:focus,.field textarea:focus{border-color:var(--gold);}
+  .field input[type=date]{color-scheme:dark;}
+  .field select.sel{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%23b7a79c' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 13px center;}
+  .field textarea{resize:none;height:70px;}
+  .src-pick{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .src-pick .sp{border:1.5px solid var(--line);border-radius:13px;padding:11px 10px;cursor:pointer;transition:.2s;background:var(--card);}
+  .src-pick .sp.on{border-color:var(--gold);background:rgba(217,164,65,.1);}
+  .src-pick .sp .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;}
+  .src-pick .sp .d{font-size:10.5px;color:var(--dim);margin-top:4px;line-height:1.4;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chips .chip{font-size:12px;padding:7px 13px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--sub);cursor:pointer;transition:.2s;}
+  .chips .chip.on{background:rgba(217,164,65,.16);border-color:var(--gold);color:var(--gold2);}
+  .stars-pick{display:flex;gap:6px;font-size:26px;color:var(--line);cursor:pointer;}
+  .stars-pick .s.on{color:var(--gold);}
+  .btn-primary{width:100%;background:linear-gradient(135deg,var(--gold2),#b9822f);color:#241a10;border:0;border-radius:14px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;box-shadow:0 5px 16px rgba(217,164,65,.35);transition:.15s;}
+  .btn-primary:active{transform:scale(.98);}
+  .btn-ghost{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px 0;color:var(--sub);font-weight:700;font-size:14px;cursor:pointer;transition:.15s;}
+  .btn-ghost:active{background:var(--card);}
+
+  /* photo cropper */
+  .crop-viewport{position:relative;width:100%;max-width:264px;aspect-ratio:3/4;margin:4px auto 0;background:#000;border:2px solid var(--gold);border-radius:14px;overflow:hidden;touch-action:none;}
+  .crop-viewport img{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;user-select:none;-webkit-user-drag:none;}
+  .crop-tip{text-align:center;font-size:11.5px;color:var(--dim);margin:12px 0 6px;line-height:1.5;}
+  .crop-zoom{display:flex;align-items:center;gap:10px;padding:0 4px;}
+  .crop-zoom input[type=range]{flex:1;accent-color:var(--gold2);}
+
+  /* detail / share card */
+  .detail-photo{height:230px;background-size:cover;background-position:center;position:relative;}
+  .detail-photo .grad{position:absolute;inset:0;background:linear-gradient(to top,var(--bg2),transparent 60%);}
+  .detail-photo .x{position:absolute;top:14px;left:14px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;}
+  .detail-body{padding:4px 20px 24px;margin-top:-40px;position:relative;}
+  .share-card{background:linear-gradient(160deg,#2a201b,#171110);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);}
+  .share-card .sc-img{height:200px;background-size:contain;background-position:center;background-repeat:no-repeat;background-color:#171110;}
+  .share-card .sc-b{padding:18px 18px 20px;}
+  .share-card .sc-b .nm{font-size:22px;font-weight:800;}
+  .share-card .sc-b .bar{font-size:12.5px;color:var(--gold2);margin-top:3px;}
+  .share-card .sc-meta{display:flex;gap:12px;margin:13px 0;font-size:12px;color:var(--sub);flex-wrap:wrap;}
+  .share-card .sc-note{font-size:13px;color:var(--sub);line-height:1.6;font-style:italic;border-left:2px solid var(--gold);padding-left:11px;margin:12px 0;}
+  .share-card .sc-ft{display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--line);padding-top:13px;margin-top:6px;}
+  .share-card .sc-ft .qr{width:44px;height:44px;border-radius:8px;background:repeating-linear-gradient(45deg,#f4ece6,#f4ece6 3px,#171110 3px,#171110 6px);}
+  .share-card .sc-ft .brand{text-align:right;}
+  .share-card .sc-ft .brand .l{font-size:15px;font-weight:800;color:var(--gold2);}
+  .share-card .sc-ft .brand .s{font-size:10px;color:var(--dim);}
+  .share-actions{display:flex;gap:11px;margin-top:16px;}
+  .share-actions .sa{flex:1;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;text-align:center;font-size:12.5px;cursor:pointer;transition:.15s;}
+  .share-actions .sa:active{background:var(--card2);}
+  .share-actions .sa .ic{font-size:20px;display:block;margin-bottom:4px;}
+
+  .toast{position:absolute;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:rgba(217,164,65,.95);color:#241a10;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:120;opacity:0;transition:.3s;box-shadow:0 6px 20px rgba(0,0,0,.4);white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .filter-row{display:flex;gap:8px;padding:4px 16px 4px;overflow-x:auto;}
+  .filter-row::-webkit-scrollbar{height:0;}
+  .filter-row .f{flex:0 0 auto;font-size:12px;padding:7px 14px;border-radius:20px;background:var(--card);border:1px solid var(--line);color:var(--sub);cursor:pointer;transition:.2s;}
+  .filter-row .f.on{background:rgba(217,164,65,.16);border-color:var(--gold);color:var(--gold2);}
+  .sort-drop{position:relative;}
+  .sd-trigger{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 12px;color:var(--sub);font-size:12.5px;cursor:pointer;transition:.2s;}
+  .sd-trigger:hover{border-color:var(--gold);color:var(--gold2);}
+  .sd-tri{font-size:9px;opacity:.7;transform:translateY(1px);}
+  .sd-back{position:fixed;inset:0;z-index:40;display:none;}
+  .sort-drop.open .sd-back{display:block;}
+  .sd-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:50;min-width:152px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.38);display:none;}
+  .sort-drop.open .sd-menu{display:block;}
+  .sd-grp{font-size:10.5px;color:var(--dim);padding:5px 8px 3px;}
+  .sd-opt{display:block;width:100%;text-align:left;background:none;border:0;border-radius:9px;padding:8px 10px;color:var(--txt);font-size:13px;cursor:pointer;}
+  .sd-opt.on{color:var(--gold2);background:rgba(217,164,65,.14);}
+  .sd-opt:hover{background:var(--card2);}
+  .sd-sep{height:1px;background:var(--line);margin:5px 4px;}
+  .sd-order{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:0;border-radius:9px;padding:8px 10px;color:var(--txt);font-size:13px;cursor:pointer;}
+  .sd-order:hover{background:var(--card2);}
+  .sd-arr{font-size:15px;font-weight:800;color:var(--gold2);}
+  .empty{text-align:center;color:var(--dim);font-size:13px;padding:40px 20px;}
+/* view interaction pill + settings + delete confirm */
+.view-ic{font-size:11.5px;color:var(--gold2);font-weight:700;cursor:pointer;padding:5px 10px;border-radius:20px;background:rgba(217,164,65,.12);border:1px solid rgba(217,164,65,.25);white-space:nowrap;}
+.chip.conf{background:var(--wine);color:#fff;border-color:var(--wine);}
+.barcard .top .barcard-del{position:absolute;top:10px;right:42px;width:26px;height:26px;border-radius:8px;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--wine2);z-index:3;}
+.barcard .top .barcard-del svg{width:14px;height:14px;display:block;}
+.barcard-del.conf{background:var(--wine)!important;color:#fff!important;}
+.swatches{display:flex;flex-wrap:wrap;gap:11px;}
+.swatch{width:48px;height:48px;border-radius:13px;cursor:pointer;border:2px solid transparent;position:relative;overflow:hidden;transition:.15s;flex:0 0 auto;}
+.swatch.on{border-color:var(--txt);transform:scale(1.07);}
+.swatch .dot{position:absolute;width:13px;height:13px;border-radius:50%;top:6px;right:6px;border:2px solid rgba(255,255,255,.65);}
+.swatch .lbl{position:absolute;bottom:0;left:0;right:0;font-size:9px;text-align:center;background:rgba(0,0,0,.42);color:#fff;padding:2px 0;}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+.set-row .k{font-size:13.5px;color:var(--txt);}
+.set-row .v{color:var(--sub);font-size:12.5px;}
+.accent-pick{width:42px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer;padding:0;}
+.accent-pick::-webkit-color-swatch-wrapper{padding:2px;}
+.accent-pick::-webkit-color-swatch{border:none;border-radius:6px;}
+.visually-hidden-file{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+.hue-rail{-webkit-appearance:none;appearance:none;height:14px;border-radius:8px;outline:none;background:linear-gradient(to right,#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000);}
+.hue-rail::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.35);box-shadow:0 1px 5px rgba(0,0,0,.4);cursor:pointer;}
+.hue-rail::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.35);cursor:pointer;}
+.accent-chip{width:30px;height:30px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:.15s;}
+.accent-chip.on{border-color:var(--txt);transform:scale(1.1);}
+  /* year / month period filter */
+  .period-row{display:flex;gap:8px;padding:0 16px 8px;}
+  .period-sel{flex:1;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 30px 9px 12px;color:var(--txt);font-size:13px;outline:none;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);background-position:calc(100% - 16px) calc(50% - 2px),calc(100% - 11px) calc(50% - 2px);background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+.danger{color:var(--wine2);}
+.share-actions .sa .ic svg{width:20px;height:20px;display:block;margin:0 auto 4px;}
+/* bar module: linear icons + status + word cloud */
+.loc svg,.bloc svg,.bl-status svg,.b-sub svg{width:13px;height:13px;display:block;flex:0 0 auto;}
+.src-pick .sp .t svg{width:15px;height:15px;}
+.bloc{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--sub);}
+.bsub{color:var(--dim);font-size:10.5px;}
+.bl-status{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.bl-status svg{width:13px;height:13px;}
+.bl-status.done{background:rgba(91,191,122,.16);color:#9be3af;border:1px solid rgba(91,191,122,.3);}
+.bl-status.want{background:rgba(138,122,112,.14);color:var(--sub);border:1px solid var(--line);}
+/* bar module: indented body + small action icons (same size as status) */
+.ck.barlog .body{padding:12px 16px;}
+.ck.barlog .ck-top{margin-bottom:6px;}
+.ck.barlog .b-sub{font-size:11px;color:var(--sub);margin-top:6px;}
+.bl-log{border-top:1px solid var(--line);margin-top:10px;padding-top:8px;}
+.bl-log-hd{font-size:11px;color:var(--dim);font-weight:700;margin-bottom:2px;}
+.bar-acts{display:flex;align-items:center;gap:7px;margin-left:auto;}
+.mini-ic{width:24px;height:24px;border-radius:7px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);transition:.15s;}
+.mini-ic svg{width:13px;height:13px;display:block;}
+.mini-ic:active{transform:scale(.9);}
+.mini-ic.pen:active{background:rgba(217,164,65,.22);}
+.mini-ic.del{color:var(--wine2);}
+.barcard .b .b-sub{font-size:11px;color:var(--dim);margin-top:5px;}
+.cloud{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:center;line-height:2.2;padding:6px 0;}
+.cloud .w{font-weight:700;line-height:1;transition:.2s;}
+.view-ic{font-size:10.5px;color:var(--gold2);font-weight:700;cursor:pointer;padding:4px 8px;border-radius:20px;background:rgba(217,164,65,.12);border:1px solid rgba(217,164,65,.25);white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="screen" id="screen">
+    <!-- ===== 记录 ===== -->
+    <div class="page active" id="page-log">
+      <div class="hd"><h1>今晚喝点什么 🍸</h1><div class="sub">周六 · 已记录 <span id="cnt-week">4</span> 杯 · 本周</div></div>
+
+      <div class="spend-card">
+        <div class="mode-switch">
+          <button class="on" data-mode="personal" onclick="setMode('personal',this)">个人消费</button>
+          <button data-mode="social" onclick="setMode('social',this)">消费全景</button>
+        </div>
+        <div class="spend-main">
+          <span class="cur">¥</span>
+          <span class="amt" id="amt-main">0</span>
+          <span class="lbl" id="amt-lbl">累计 · 个人消费</span>
+        </div>
+        <div class="spend-quick">
+          <div class="q" onclick="drill('今日')"><div class="v" id="q-today">¥0</div><div class="k">今日</div></div>
+          <div class="q" onclick="drill('本周')"><div class="v" id="q-week">¥0</div><div class="k">本周</div></div>
+          <div class="q" onclick="drill('本月')"><div class="v" id="q-month">¥0</div><div class="k">本月</div></div>
+          <div class="q" onclick="drill('本年')"><div class="v" id="q-year">¥0</div><div class="k">本年</div></div>
+        </div>
+        <div class="social-extra" id="social-extra">
+          <div class="social-row"><span class="name"><span class="dot" style="background:var(--gold)"></span>我请客</span><span class="val" id="s-treat">¥0</span><span class="drill" onclick="drill('我请客')">按朋友 ›</span></div>
+          <div class="social-row"><span class="name"><span class="dot" style="background:var(--purple)"></span>他人请我</span><span class="val" id="s-treated">¥0</span><span class="drill" onclick="drill('他人请我')">谁请的 ›</span></div>
+          <div class="social-row"><span class="name"><span class="dot" style="background:var(--teal)"></span>消费总账</span><span class="val" id="s-table">¥0</span><span class="drill">桌账</span></div>
+        </div>
+      </div>
+
+      <div class="sec-title"><h2>饮酒日志</h2>
+        <div class="sort-drop" id="sort-drop">
+          <button class="sd-trigger" type="button" onclick="toggleSortDrop(event)"><span id="sd-dim-label">时间</span><span class="sd-tri">▾</span></button>
+          <div class="sd-back" onclick="toggleSortDrop(event)"></div>
+          <div class="sd-menu" id="sd-menu">
+            <div class="sd-grp">排序维度</div>
+            <button class="sd-opt on" type="button" data-dim="time" onclick="pickSortDim('time')">时间</button>
+            <button class="sd-opt" type="button" data-dim="price" onclick="pickSortDim('price')">价格</button>
+            <button class="sd-opt" type="button" data-dim="abv" onclick="pickSortDim('abv')">度数</button>
+            <div class="sd-sep"></div>
+            <button class="sd-order" type="button" onclick="toggleSortOrd()"><span id="sd-ord-label">倒序</span><span class="sd-arr" id="sd-arr">↓</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="period-row">
+        <select id="log-year" class="period-sel" onchange="curYear=this.value;renderTimeline();"></select>
+        <select id="log-month" class="period-sel" onchange="curMonth=this.value;renderTimeline();"></select>
+      </div>
+      <div style="padding:0 16px 4px;position:relative;">
+        <input id="search-input" placeholder="🔍 搜索酒名 / 酒吧 / 基酒 / 风味 / 笔记" oninput="renderTimeline()" style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--txt);font-size:13px;outline:none;" />
+      </div>
+      <div class="filter-row" id="filter-row"></div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <!-- ===== 数据看板（花销+发现合并） ===== -->
+    <div class="page" id="page-data">
+      <div class="hd"><h1>数据看板</h1><div class="sub">消费全景 · 口味画像</div></div>
+      <div class="period-row">
+        <select id="data-year" class="period-sel" onchange="curYear=this.value;renderDashboard();"></select>
+        <select id="data-month" class="period-sel" onchange="curMonth=this.value;renderDashboard();"></select>
+      </div>
+      <div class="spend-card" style="margin-top:14px;">
+        <div class="mode-switch">
+          <button class="on" data-mode="personal" onclick="setMode('personal',this)">个人消费</button>
+          <button data-mode="social" onclick="setMode('social',this)">消费全景</button>
+        </div>
+        <div class="spend-main"><span class="cur">¥</span><span class="amt" id="amt-main2">0</span><span class="lbl" id="amt-lbl2">累计</span></div>
+        <div class="spend-quick">
+          <div class="q"><div class="v" id="q2-cup">0</div><div class="k">自费杯数</div></div>
+          <div class="q"><div class="v" id="q2-avg">¥0</div><div class="k">平均单杯</div></div>
+          <div class="q"><div class="v" id="q2-max">¥0</div><div class="k">最贵一杯</div></div>
+        </div>
+        <div class="social-extra" id="social-extra2">
+          <div class="social-row"><span class="name"><span class="dot" style="background:var(--gold)"></span>我请客</span><span class="val" id="s2-treat">¥0</span></div>
+          <div class="social-row"><span class="name"><span class="dot" style="background:var(--purple)"></span>他人请我</span><span class="val" id="s2-treated">¥0</span></div>
+          <div class="social-row"><span class="name"><span class="dot" style="background:var(--teal)"></span>消费总账</span><span class="val" id="s2-table">¥0</span></div>
+        </div>
+      </div>
+      <div class="panel"><h3>消费趋势 · 近 6 个月</h3><div class="bars" id="trend-bars"></div></div>
+      <div class="panel"><h3>近 30 天花销节奏</h3><div class="bars" id="rhythm-bars" style="height:70px;"></div></div>
+      <div class="panel"><h3>基酒偏好占比</h3>
+        <div class="donut-wrap"><div class="donut" id="donut"></div><div class="donut-legend" id="donut-legend"></div></div>
+      </div>
+      <div class="panel"><h3>风味标签词云图</h3><div class="cloud" id="cloud"></div></div>
+      <div class="panel"><h3>🍸 我的鸡尾酒排行榜</h3><div class="top-list" id="top-list"></div></div>
+    </div>
+
+    <!-- ===== 酒吧日志 (Bar Log) ===== -->
+    <div class="page" id="page-bar">
+      <div class="hd"><h1>酒吧日志 🍸</h1><div class="sub">想去清单 · 已打卡酒吧 · 探店笔记</div></div>
+      <div style="padding:0 16px 4px;position:relative;">
+        <input id="bar-search" type="search" enterkeyhint="search" placeholder="🔍 搜索酒吧名称…" oninput="renderBarLogSafe()" onkeydown="if(event.key==='Enter'){event.preventDefault();renderBarLogSafe();}" style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--txt);font-size:13px;outline:none;" />
+      </div>
+      <div class="sec-title"><h2>想去</h2><span class="act" onclick="openBarLog()">＋ 添加</span></div>
+      <div id="barlog-want" style="padding:0 16px 8px;"></div>
+      <div class="sec-title"><h2>已打卡酒吧</h2></div>
+      <div id="bars-list" style="padding:0 16px 8px;"></div>
+    </div>
+
+    <!-- ===== 我的 ===== -->
+    <div class="page" id="page-me">
+      <div class="hd"><h1>我的</h1></div>
+      <div class="prof-head"><div class="av">🥃</div><div><div class="nm">我的 pourfolio-个人鸡尾酒记录</div><div class="st">加入 <span id="me-days">0</span> 天 · 记录 <span id="me-total">0</span> 杯</div></div></div>
+      <div class="grid2">
+        <div class="stat"><div class="v" id="me-personal">¥0</div><div class="k">个人消费累计</div></div>
+        <div class="stat"><div class="v" id="me-cups">0</div><div class="k">实饮杯数</div></div>
+        <div class="stat"><div class="v" id="me-bars">0</div><div class="k">探过的酒吧</div></div>
+        <div class="stat"><div class="v" id="me-fav">0</div><div class="k">收藏鸡尾酒</div></div>
+      </div>
+      <div class="coll" id="coll-fav">
+        <div class="coll-h" onclick="toggleColl(this)"><h2>❤️ 收藏的鸡尾酒</h2><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="coll-b"><div class="timeline" id="fav-list"></div></div>
+      </div>
+      <div class="coll collapsed" id="coll-bars">
+        <div class="coll-h" onclick="toggleColl(this)"><h2>🍷 收藏的酒吧</h2><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="coll-b"><div id="fav-bars-list" style="padding:0 16px 8px;"></div></div>
+      </div>
+      <div class="coll collapsed" id="coll-friends">
+        <div class="coll-h" onclick="toggleColl(this)"><h2>👥 同饮好友</h2><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="coll-b">
+          <div style="padding:0 16px 4px;position:relative;">
+            <input id="friend-search" placeholder="🔍 搜索好友名字…" oninput="renderFriends()" style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--txt);font-size:13px;outline:none;" />
+          </div>
+          <div id="friend-list" style="padding:0 16px 8px;"></div>
+        </div>
+      </div>
+      <div class="menu">
+        <div class="mi"><span class="ic">📤</span>导出数据 (JSON / CSV)<span class="ar">›</span></div>
+        <div class="mi" onclick="openColl('coll-friends');setTimeout(()=>document.getElementById('friend-list').scrollIntoView({behavior:'smooth'}),60)"><span class="ic">👥</span>好友管理<span class="ar">›</span></div>
+        <div class="mi" onclick="toast('大众点评同步为远期规划，敬请期待')"><span class="ic">🔗</span>大众点评同步<span class="ar" style="color:var(--dim);font-size:11px;">远期 ›</span></div>
+        <div class="mi" onclick="openSettings()"><span class="ic">⚙️</span>设置<span class="ar">›</span></div>
+      </div>
+      <div class="empty" id="ver-me">pourfolio-个人鸡尾酒记录</div>
+    </div>
+  </div>
+
+  <!-- tabbar -->
+  <div class="tabbar">
+    <div class="tb on" data-p="log" onclick="go('log',this)"><span class="ic">📖</span>记录</div>
+    <div class="tb" data-p="data" onclick="go('data',this)"><span class="ic">📊</span>数据</div>
+    <div class="tb compose" onclick="openAdd()"><span class="ic">＋</span>记一杯</div>
+    <div class="tb" data-p="bar" onclick="go('bar',this)"><span class="ic">🍸</span>酒吧</div>
+    <div class="tb" data-p="me" onclick="go('me',this)"><span class="ic">👤</span>我的</div>
+  </div>
+
+  <!-- masks & sheets -->
+  <div class="mask" id="mask" onclick="maskClick()"></div>
+
+  <!-- add sheet -->
+  <div class="sheet" id="add-sheet">
+    <div class="grip"></div>
+    <div class="sh-hd"><h3 id="add-title">记一杯 🍸</h3><span class="x" onclick="closeAll()">✕</span></div>
+    <div class="form">
+      <div class="field">
+        <label>这杯酒的来源</label>
+        <div class="src-pick" id="src-pick">
+          <div class="sp on" data-src="SELF" onclick="pickSrc(this)"><div class="t"><span class="dot" style="background:var(--gold)"></span>自费自饮</div><div class="d">自己买、自己喝 · 计入个人消费</div></div>
+          <div class="sp" data-src="TASTE" onclick="pickSrc(this)"><div class="t"><span class="dot" style="background:#5a94d6"></span>试饮一口</div><div class="d">尝一口 · 可填价格但不计自费</div></div>
+          <div class="sp" data-src="TREATED" onclick="pickSrc(this)"><div class="t"><span class="dot" style="background:#9b6bd6"></span>他人请我</div><div class="d">朋友请 / 调酒师赠送 · 计入他人请我</div></div>
+          <div class="sp" data-src="TREAT_OTHERS" onclick="pickSrc(this)"><div class="t"><span class="dot" style="background:#3fae9e"></span>我请别人</div><div class="d">我买给别人 · 计入我请客</div></div>
+        </div>
+      </div>
+      <!-- 他人请我：谁请的 -->
+      <div class="field" id="treated-detail" style="display:none;">
+        <label>谁请我喝的</label>
+        <div class="chips" style="margin-bottom:9px;">
+          <span class="chip on" id="tt-friend" onclick="setTreatedType('friend')">朋友请</span>
+          <span class="chip" id="tt-bartender" onclick="setTreatedType('bartender')">调酒师赠送</span>
+        </div>
+        <input id="f-treated-by" class="sel" list="friend-datalist" placeholder="输入好友名字（如 阿凯），可留空" style="display:block;" />
+      </div>
+      <!-- 我请别人：请了谁 -->
+      <div class="field" id="treat-detail" style="display:none;">
+        <label>我请了谁（自填）</label>
+        <input id="f-treat-whom" class="sel" list="friend-datalist" placeholder="输入好友名字（如 Tina）" />
+        <datalist id="friend-datalist"></datalist>
+      </div>
+      <div class="field"><label>鸡尾酒名称</label><input id="f-name" placeholder="如 Negroni / 内格罗尼" /></div>
+      <div style="display:flex;gap:11px;">
+        <div class="field" style="flex:1;"><label>饮用日期</label><input id="f-date" type="date" class="sel" /></div>
+      </div>
+      <div class="field"><label>照片上传（可裁剪）</label>
+        <label class="upload-zone" style="position:relative;display:flex;height:150px;border:1.5px dashed var(--line);border-radius:14px;overflow:hidden;cursor:pointer;" id="f-photo-zone">
+          <div id="f-photo-prev" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--dim);background-size:cover;background-position:center;width:100%;height:100%;">
+            <span style="font-size:30px;">📷</span><span style="font-size:12px;">点击上传并裁剪酒品照片</span>
+          </div>
+          <input id="f-photo" type="file" accept="image/*" onchange="onPhoto(event)" class="visually-hidden-file" />
+        </label>
+      </div>
+      <div class="field"><label>所属酒吧</label><input id="f-bar" placeholder="选择或输入（新酒吧自动加入酒吧日志）" list="bar-datalist" /><datalist id="bar-datalist"></datalist></div>
+      <div style="display:flex;gap:11px;">
+        <div class="field" style="flex:1;"><label>基酒（自填）</label><input id="f-base" placeholder="金酒 / 威士忌 / 自创基酒…" /></div>
+        <div class="field" style="width:90px;"><label>酒精度</label><input id="f-abv" placeholder="%ABV" inputmode="decimal" /></div>
+      </div>
+      <div class="field" id="price-field"><label>价格 (¥)</label><input id="f-price" placeholder="0" inputmode="decimal" /></div>
+      <div class="field"><label>风味标签（自定义，可复用）</label>
+        <div class="chips" id="f-flavors"></div>
+        <div class="chips" id="f-flavor-suggest" style="margin-top:8px;"></div>
+        <div style="display:flex;gap:8px;margin-top:9px;">
+          <input id="f-flavor-input" placeholder="输入风味，如 烟熏 / 柑橘 / 海洋…" style="flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--txt);font-size:13px;outline:none;" onkeydown="if(event.key==='Enter'){event.preventDefault();addFlavor();}" />
+          <button type="button" onclick="addFlavor()" style="flex:0 0 auto;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:0 16px;color:var(--gold2);font-weight:700;cursor:pointer;">添加</button>
+        </div>
+      </div>
+      <div class="field"><label>喜好评分</label><div class="stars-pick" id="f-stars">
+        <span class="s on" data-v="1" onclick="pickStar(1)">★</span><span class="s on" data-v="2" onclick="pickStar(2)">★</span><span class="s on" data-v="3" onclick="pickStar(3)">★</span><span class="s on" data-v="4" onclick="pickStar(4)">★</span><span class="s" data-v="5" onclick="pickStar(5)">★</span>
+      </div></div>
+      <div class="field"><label>品鉴笔记</label><textarea id="f-note" placeholder="香气、口感、平衡度、当下的心情…"></textarea></div>
+      <button class="btn-primary" id="add-save" onclick="saveDrink()">保存 · 即时更新花销</button>
+    </div>
+  </div>
+
+  <!-- crop sheet -->
+  <div class="sheet" id="crop-sheet">
+    <div class="grip"></div>
+    <div class="sh-hd"><h3>裁剪照片</h3><span class="x" onclick="closeCrop()">✕</span></div>
+    <div class="form">
+      <div class="crop-viewport" id="crop-vp" onpointerdown="cropDown(event)">
+        <img id="crop-img" alt="" draggable="false" />
+      </div>
+      <div class="crop-tip">拖动图片选想要的部分 · 滑动缩放 · 框内即最终显示</div>
+      <div class="crop-zoom"><span>🔍</span><input id="crop-zoom" type="range" min="0" max="100" value="0" oninput="onCropZoom()" /></div>
+      <div style="display:flex;gap:11px;margin-top:4px;">
+        <button class="btn-ghost" type="button" onclick="closeCrop()">取消</button>
+        <button class="btn-primary" type="button" onclick="applyCrop()">使用这张</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- detail sheet -->
+  <div class="sheet" id="detail-sheet"></div>
+
+  <!-- bar log sheet -->
+  <div class="sheet" id="barlog-sheet">
+    <div class="grip"></div>
+    <div class="sh-hd"><h3 id="barlog-title">添加酒吧</h3><span class="x" onclick="closeAll()">✕</span></div>
+    <div class="form">
+      <div class="field"><label>酒吧名称</label><input id="b-name" placeholder="如 拳击猫 / 某某小酒馆" /></div>
+      <div class="field"><label>地点</label><input id="b-loc" placeholder="区域 · 地址（可空）" /></div>
+      <div class="field"><label>状态</label>
+        <div class="src-pick" id="b-status-pick" style="grid-template-columns:1fr 1fr;">
+          <div class="sp on" data-st="todo" onclick="setBarStatus('todo',this)"><div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M6 21V4"/><path d="M6 4h12l-2.2 4L18 12H6"/></svg>想去</div><div class="d">还没去，先收藏</div></div>
+          <div class="sp" data-st="done" onclick="setBarStatus('done',this)"><div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M20 6 9 17l-5-5"/></svg>已打卡</div><div class="d">去过，写日志</div></div>
+        </div>
+      </div>
+      <div id="b-todo-block">
+        <div class="field"><label>怎么知道的</label>
+          <select id="b-from-type" class="sel" onchange="document.getElementById('b-from-friend').style.display=this.value==='friend'?'block':'none'">
+            <option value="自己刷到">自己刷到</option>
+            <option value="friend">好友推荐</option>
+          </select>
+          <input id="b-from-friend" class="sel" list="friend-datalist" placeholder="推荐人名字（如 阿凯）" style="display:none;margin-top:9px;" />
+        </div>
+        <div class="field"><label>感兴趣的点（自选文字）</label><textarea id="b-interest" placeholder="招牌酒、氛围、某篇探店笔记里提到的…"></textarea></div>
+        <div class="field"><label>参考截图（如大众点评，可选）</label>
+          <label class="upload-zone" style="position:relative;display:flex;height:96px;border:1.5px dashed var(--line);border-radius:12px;overflow:hidden;cursor:pointer;" id="b-shot-zone">
+            <div id="b-shot-prev" style="background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px;width:100%;height:100%;">点击上传参考截图</div>
+            <input id="b-shot" type="file" accept="image/*" onchange="onBarShot(event)" class="visually-hidden-file" />
+          </label>
+        </div>
+      </div>
+      <div id="b-done-block" style="display:none;">
+        <div class="field"><label>打卡日期</label><input id="b-date" type="date" class="sel" /></div>
+        <div class="field"><label>去过几次</label><input id="b-visits" type="number" min="1" value="1" class="sel" /></div>
+        <div class="field"><label>我的累计消费（¥）</label><input id="b-mytotal" type="number" min="0" value="0" class="sel" /></div>
+        <div class="field"><label>消费总账（¥）</label><input id="b-tabletotal" type="number" min="0" value="0" class="sel" /></div>
+        <div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--sub);"><input id="b-fav" type="checkbox" style="width:16px;height:16px;" /> 收藏这家酒吧</label></div>
+        <div class="field"><label>描述</label><textarea id="b-desc" placeholder="这家店是什么样的？风格、空间、适合什么场合…"></textarea></div>
+        <div class="field"><label>图片上传（可多张）</label>
+          <label class="upload-zone" style="position:relative;display:flex;min-height:84px;border:1.5px dashed var(--line);border-radius:14px;overflow:hidden;cursor:pointer;" id="b-photos-zone">
+            <div id="b-photos-prev" style="display:flex;flex-wrap:wrap;gap:8px;min-height:84px;align-items:center;padding:10px;color:var(--dim);width:100%;height:100%;">
+              <span id="b-photo-hint" style="font-size:12px;width:100%;text-align:center;">📷 点击上传酒吧照片</span>
+            </div>
+            <input id="b-photo" type="file" accept="image/*" multiple onchange="onBarPhoto(event)" class="visually-hidden-file" />
+          </label>
+        </div>
+        <div class="field"><label>点评</label><textarea id="b-review" placeholder="酒怎么样、服务如何、会再来吗、给后来人的建议…"></textarea></div>
+        <div class="field"><label>综合喜好评分</label><div class="stars-pick" id="br-overall"></div></div>
+      </div>
+      <button class="btn-primary" onclick="saveBarLog()">保存酒吧日志</button>
+    </div>
+  </div>
+
+  <!-- friend interaction sheet -->
+  <div class="sheet" id="friend-sheet">
+    <div class="grip"></div>
+    <div class="sh-hd"><h3 id="friend-sh-name">同饮好友</h3><span class="x" onclick="closeAll()">✕</span></div>
+    <div class="form" id="friend-sh-body"></div>
+  </div>
+
+  <!-- settings sheet -->
+  <div class="sheet" id="settings-sheet">
+    <div class="grip"></div>
+    <div class="sh-hd"><h3>设置 ⚙️</h3><span class="x" onclick="closeAll()">✕</span></div>
+    <div class="form">
+      <div class="sec-title" style="padding:6px 0 8px;"><h2>配色方案</h2></div>
+      <div class="swatches" id="theme-swatches"></div>
+      <div style="margin-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span class="k">自定义主色</span>
+          <span id="accent-hex" style="font-size:12px;color:var(--sub);font-family:ui-monospace,monospace;letter-spacing:.5px;">#d9a441</span>
+        </div>
+        <input type="color" id="set-accent" value="#d9a441" oninput="applyAccent(this.value)" style="width:100%;height:46px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;padding:0;" />
+        <input type="range" id="hue-slider" min="0" max="360" value="42" oninput="applyHue(this.value)" class="hue-rail" style="width:100%;margin-top:12px;" />
+        <div id="accent-chips" style="display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;"></div>
+      </div>
+      <div class="sec-title" style="padding:14px 0 8px;"><h2>数据</h2></div>
+      <div class="set-row" onclick="seedConfirm()"><span class="k">载入示例数据</span><span class="ar">›</span></div>
+      <div class="set-row" onclick="resetDemo()"><span class="k danger">清除全部数据并重置</span><span class="ar">›</span></div>
+      <div class="empty" id="ver-set" style="padding:18px 0 4px;">pourfolio-个人鸡尾酒记录<br>数据仅存于本机，刷新与重开不丢失</div>
+      <div class="sec-title" style="padding:14px 0 8px;"><h2>关于 / 更新</h2></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:12px;color:var(--dim);">当前版本：<span id="ver-badge" style="color:var(--gold);font-weight:600;">—</span></div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="checkUpdate()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--txt);font-size:13px;cursor:pointer;">检查更新</button>
+          <button onclick="clearCache()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--txt);font-size:13px;cursor:pointer;">清除缓存并刷新</button>
+        </div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.5;">若改动迟迟不生效，点「清除缓存并刷新」即可强制拉取最新版，无需卸载重装。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const IMG = {
+  negroni:"https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&q=80",
+  martini:"https://images.unsplash.com/photo-1575023782549-62ca0d244b39?w=800&q=80",
+  oldf:"https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80",
+  margarita:"https://images.unsplash.com/photo-1556855810-ac404aa91e85?w=800&q=80",
+  mojito:"https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=800&q=80",
+  whisky:"https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=800&q=80",
+  cosmo:"https://images.unsplash.com/photo-1536935338788-846bb9981813?w=800&q=80",
+  espresso:"https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
+  bar1:"https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
+  bar2:"https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&q=80",
+  bar3:"https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80",
+  dianping:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80"
+};
+const ICON_PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const ICON_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+const ICON_PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>';
+const ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_BULB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2.2h5c.1-1 .5-1.7 1.1-2.2A6 6 0 0 0 12 3Z"/></svg>';
+const ICON_FLAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h12l-2.2 4L18 12H6"/></svg>';
+/* ------------- persistence (IndexedDB, local-only) ------------- */
+const DB_NAME='pourfoliodb', DB_VER=1; let _db=null;
+function openDB(){return new Promise((res,rej)=>{if(_db)return res(_db);const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('state'))db.createObjectStore('state');if(!db.objectStoreNames.contains('images'))db.createObjectStore('images',{keyPath:'id'});};r.onsuccess=()=>{_db=r.result;res(_db);};r.onerror=()=>rej(r.error);});}
+function dbPut(store,val,key){return openDB().then(db=>new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const os=tx.objectStore(store);if(key!==undefined)os.put(val,key);else os.put(val);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);}));}
+function dbGet(store,key){return openDB().then(db=>new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const rq=tx.objectStore(store).get(key);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);}));}
+function dbGetAll(store){return openDB().then(db=>new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const rq=tx.objectStore(store).getAll();rq.onsuccess=()=>res(rq.result||[]);rq.onerror=()=>rej(rq.error);}));}
+function dbClear(){return openDB().then(db=>new Promise((res,rej)=>{const tx=db.transaction(['state','images'],'readwrite');tx.objectStore('state').clear();tx.objectStore('images').clear();tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);}));}
+async function storeImage(dataURI){const id='img_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);await dbPut('images',{id,data:dataURI});return id;}
+async function resolveImgRefs(){const imgs=await dbGetAll('images');const map={};imgs.forEach(i=>map[i.id]=i.data);drinks.forEach(d=>{if(typeof d.img==='string'&&d.img.startsWith('id:'))d.img=map[d.img.slice(3)]||d.img;});bars.forEach(b=>{if(b.shot&&typeof b.shot==='string'&&b.shot.startsWith('id:'))b.shot=map[b.shot.slice(3)]||b.shot;(b.logs||[]).forEach(l=>{if(l.photos)l.photos=l.photos.map(p=>(typeof p==='string'&&p.startsWith('id:'))?(map[p.slice(3)]||p):p);});});}
+function saveState(){return dbPut('state',{drinks,bars,barLog,friends,myFlavors,budget,theme:currentTheme,accent:accentHex},'app');}
+async function loadState(){const snap=await dbGet('state','app');if(snap){drinks=snap.drinks||[];bars=snap.bars||[];barLog=snap.barLog||[];friends=snap.friends||[];myFlavors=snap.myFlavors||[];budget=(snap.budget!=null)?snap.budget:1500;accentHex=snap.accent||null;await resolveImgRefs();if(accentHex)applyAccent(accentHex);else applyTheme(snap.theme||'light');}else{budget=1500;/* 优先继承同步脚本从 localStorage 恢复的主题，避免 IndexedDB 清空后回退浅色 */if(window.__pf_theme&&THEMES[window.__pf_theme])applyTheme(window.__pf_theme);else if(window.__pf_accent)applyAccent(window.__pf_accent);else applyTheme('light');await saveState();}}
+function seedDemo(){drinks=JSON.parse(JSON.stringify(DEMO.drinks));bars=JSON.parse(JSON.stringify(DEMO.bars));barLog=JSON.parse(JSON.stringify(DEMO.barLog));friends=JSON.parse(JSON.stringify(DEMO.friends));myFlavors=[];saveState();renderAll();}
+function renderAll(){renderFilters();updateSortUI();renderTimeline();renderSpend();if(document.getElementById('page-me').classList.contains('active')){renderMe();renderFriends();}if(document.getElementById('page-bar').classList.contains('active'))renderBarLog();if(document.getElementById('page-data').classList.contains('active'))renderDashboard();}
+
+const DEMO={
+  friends:["阿凯","小林","Tina","老周"],
+  bars:[
+    {id:1,name:"The Alchemist",loc:"静安 · 巨鹿路 158 坊",img:IMG.bar1,overall:5,fav:true,visits:5,myTotal:298,tableTotal:520,logs:[{date:"2026-06-20",stars:5,review:"调酒师记得我上次点的酒，私密感一流。",photos:[]}]},
+    {id:2,name:"Speak Low 隐",loc:"黄浦 · 复兴中路 579",img:IMG.bar2,overall:5,fav:true,visits:4,myTotal:176,tableTotal:176,logs:[{date:"2026-05-18",stars:5,review:"暗门进去别有洞天，Bartender 手法教科书级。",photos:[]}]},
+    {id:3,name:"Union Trading Co.",loc:"徐汇 · 永福路 64",img:IMG.bar3,overall:4,fav:false,visits:3,myTotal:132,tableTotal:340,logs:[{date:"2026-04-02",stars:4,review:"热带风情，Tiki 系做得很地道。",photos:[]}]}
+  ],
+  barLog:[
+    {id:101,name:"Sober Company",loc:"黄浦 · 雁荡路",from:"小林 推荐",interest:"听说 Coffee + Cocktail 双动线，白天咖啡晚上酒。"},
+    {id:102,name:"Bar Choices",loc:"静安 · 铜仁路",from:"自己刷到",interest:"Old Fashioned 很正，氛围低调。"},
+    {id:103,name:"Tipsy 微醺",loc:"徐汇 · 武康路",from:"Tina 推荐",interest:"武康路散步顺路，氛围感强，适合约会。"}
+  ],
+  drinks:[
+    {id:1,name:"Negroni",bar:"The Alchemist",base:"金酒",abv:28,price:98,source:"SELF",flavors:["苦","草本"],stars:5,fav:true,note:"经典苦甜平衡，橙皮香气收尾干净利落。",img:IMG.negroni,date:todayStr(),day:"今天"},
+    {id:2,name:"Old Fashioned",bar:"The Alchemist",base:"威士忌",abv:32,price:110,source:"TREATED",treatedType:"friend",treatedBy:"阿凯",flavors:["烟熏","甜"],stars:4,fav:false,note:"阿凯请的，波本的木质香很足。",img:IMG.oldf,date:todayStr(),day:"今天"},
+    {id:3,name:"Espresso Martini",bar:"The Alchemist",base:"伏特加",abv:20,price:88,source:"TREAT_OTHERS",treatedWhom:["Tina"],flavors:["苦","甜"],stars:4,fav:false,note:"请 Tina 喝的，咖啡油脂绵密。",img:IMG.espresso,date:todayStr(),day:"今天"},
+    {id:4,name:"Dry Martini",bar:"Speak Low 隐",base:"金酒",abv:30,price:96,source:"SELF",flavors:["草本","辛香"],stars:5,fav:true,note:"极干，橄榄咸香与杜松子的对话。",img:IMG.martini,date:"2026-07-15",day:"07/15"},
+    {id:5,name:"Margarita",bar:"Union Trading Co.",base:"龙舌兰",abv:22,price:78,source:"SELF",flavors:["酸","果香"],stars:4,fav:false,note:"青柠很新鲜，盐边恰到好处。",img:IMG.margarita,date:"2026-07-12",day:"07/12"},
+    {id:6,name:"Mojito",bar:"Union Trading Co.",base:"朗姆",abv:14,price:68,source:"TASTE",flavors:["酸","甜"],stars:3,fav:false,note:"尝了小林一口，薄荷偏少（价格仅记录参考，不计自费）。",img:IMG.mojito,date:"2026-07-12",day:"07/12"},
+    {id:9,name:"Gin Fizz",bar:"Speak Low 隐",base:"金酒",abv:18,price:0,source:"TREATED",treatedType:"bartender",flavors:["果香","气泡"],stars:5,fav:false,note:"熟客福利，调酒师赠送的一杯，惊喜。",img:IMG.cosmo,date:"2026-07-15",day:"07/15"},
+    {id:7,name:"Cosmopolitan",bar:"Speak Low 隐",base:"伏特加",abv:24,price:80,source:"SELF",flavors:["果香","酸"],stars:4,fav:false,note:"蔓越莓色泽诱人，酸甜讨喜。",img:IMG.cosmo,date:"2026-06-28",day:"06/28"},
+    {id:8,name:"Whisky Sour",bar:"The Alchemist",base:"威士忌",abv:26,price:92,source:"SELF",flavors:["酸","甜"],stars:5,fav:true,note:"蛋清绵密，酸度结构感极佳。",img:IMG.whisky,date:"2026-06-20",day:"06/20"}
+  ]
+};
+let friends=[], bars=[], barLog=[], drinks=[];
+function addFriend(n){n=(n||"").trim();if(n&&!friends.includes(n))friends.push(n);renderFriendDatalist();saveState();}
+function renderFriendDatalist(){const d=document.getElementById('friend-datalist');if(d)d.innerHTML=friends.map(f=>`<option>${f}</option>`).join("");}
+
+/* ------------- state ------------- */
+let mode="personal", curFilter="全部", sortDim="time", sortOrd="desc", rankExpanded=false, newSrc="SELF", newStars=4, newFlavors=[], myFlavors=[], newPhoto=null, treatedType="friend", editId=null;
+let budget=1500, currentTheme="light", accentHex=null, delPending=null, delTimer=null;
+const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');};
+let curYear="全部", curMonth="全部";
+const THEMES={
+  light:{name:"浅色",bg:"#fdf5ea",bg2:"#f8ead6",card:"#ffffff",card2:"#fbefdd",line:"#ecd6bb",txt:"#2c1c12",sub:"#7a5e4a",dim:"#a98d75",gold:"#e8a11f",gold2:"#f4b733",wine:"#d5342f",wine2:"#e85a4f",teal:"#2f9e8f",purple:"#9b5fc7",green:"#4f9e5b",blue:"#3f7fc7"},
+  dark:{name:"深色",bg:"#12100f",bg2:"#1b1715",card:"#221c1a",card2:"#2b2320",line:"#3a2f2a",txt:"#f4ece6",sub:"#b7a79c",dim:"#8a7a70",gold:"#d9a441",gold2:"#f0c674",wine:"#8e2f3f",wine2:"#c0455a",teal:"#3fae9e",purple:"#9b6bd6",green:"#5bbf7a",blue:"#5a94d6"}
+};
+function lighten(hex,amt){hex=(hex||"#000").replace("#","");if(hex.length===3)hex=hex.split("").map(c=>c+c).join("");const n=parseInt(hex,16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;r=Math.round(r+(255-r)*amt);g=Math.round(g+(255-g)*amt);b=Math.round(b+(255-b)*amt);return "#"+[r,g,b].map(x=>x.toString(16).padStart(2,"0")).join("");}
+function applyTheme(name){const t=THEMES[name];if(!t)return;const rs=document.documentElement.style;for(const k in t)rs.setProperty("--"+k,t[k]);currentTheme=name;accentHex=null;window.__pf_theme=name;const m=document.getElementById("meta-theme");if(m)m.setAttribute("content",t.bg);document.querySelectorAll("#theme-swatches .swatch").forEach(s=>s.classList.toggle("on",s.dataset.name===name));syncAccentUI(t.gold);localStorage.setItem('pf_theme',JSON.stringify({theme:name}));saveState();}
+function applyAccent(hex){accentHex=hex;const base=window.__pf_theme||currentTheme||'light';/* 自包含恢复：先重写完整基础主题变量，再叠加自定义金色，确保不依赖同步脚本 */const bt=THEMES[base];if(bt){const drs=document.documentElement.style;for(const k in bt)drs.setProperty("--"+k,bt[k]);}const rs=document.documentElement.style;rs.setProperty("--gold",hex);rs.setProperty("--gold2",lighten(hex,0.2));currentTheme=base;window.__pf_theme=base;/* 保留基础主题名，双重保障（currentTheme+window）避免刷新回退 */document.querySelectorAll("#theme-swatches .swatch").forEach(s=>s.classList.remove("on"));const m=document.getElementById("meta-theme");if(m)m.setAttribute("content",hex);syncAccentUI(hex);localStorage.setItem('pf_theme',JSON.stringify({theme:base,accent:hex}));saveState();}
+function applyHue(h){const hex=hslToHex(+h,0.72,0.5);applyAccent(hex);}
+function syncAccentUI(hex){const lbl=document.getElementById("accent-hex");if(lbl)lbl.textContent=hex.toUpperCase();const ci=document.getElementById("set-accent");if(ci)ci.value=hex;const hs=document.getElementById("hue-slider");if(hs)hs.value=Math.round(hexToHue(hex));document.querySelectorAll("#accent-chips .accent-chip").forEach(c=>c.classList.toggle("on",(c.dataset.hex||"").toLowerCase()===hex.toLowerCase()));}
+function hslToHex(h,s,l){h=((h%360)+360)%360;const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;let r,g,b;if(h<60){r=c;g=x;b=0;}else if(h<120){r=x;g=c;b=0;}else if(h<180){r=0;g=c;b=x;}else if(h<240){r=0;g=x;b=c;}else if(h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;}return "#"+[r,g,b].map(v=>Math.round((v+m)*255).toString(16).padStart(2,"0")).join("");}
+function hexToHue(hex){hex=(hex||"#000").replace("#","");if(hex.length===3)hex=hex.split("").map(c=>c+c).join("");const r=parseInt(hex.slice(0,2),16)/255,g=parseInt(hex.slice(2,4),16)/255,b=parseInt(hex.slice(4,6),16)/255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d!==0){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return h;}
+const ACCENTS=["#e8a11f","#d9a441","#e07a2f","#d5342f","#e85a4f","#c0455a","#9b5fc7","#5b6bd6","#3f7fc7","#2f9e8f","#4f9e5b","#5bbf7a"];
+function buildAccentChips(){const wrap=document.getElementById("accent-chips");if(!wrap)return;wrap.innerHTML=ACCENTS.map(h=>`<div class="accent-chip" data-hex="${h}" style="background:${h}" onclick="applyAccent('${h}')"></div>`).join("");}
+function setBudget(v){budget=parseInt(v)||1500;renderSpend();toast("预算已更新为 ¥"+budget);saveState();}
+function openSettings(){const wrap=document.getElementById("theme-swatches");if(wrap){wrap.innerHTML=Object.entries(THEMES).map(([k,t])=>`<div class="swatch ${k===currentTheme?"on":""}" data-name="${k}" onclick="applyTheme(this.dataset.name)" title="${t.name}" style="background:linear-gradient(135deg,${t.bg},${t.card2});border-color:${k===currentTheme?'var(--txt)':t.line};"><span class="dot" style="background:${t.gold}"></span><span class="lbl" style="background:${t.bg2};color:${t.txt};">${t.name}</span></div>`).join("");wrap.dataset.built="1";}buildAccentChips();syncAccentUI(accentHex||(THEMES[currentTheme]?THEMES[currentTheme].gold:"#d9a441"));closeAll();document.getElementById("mask").classList.add("show");document.getElementById("settings-sheet").classList.add("show");}
+let resetArmed=false;
+async function resetDemo(){
+  if(!resetArmed){resetArmed=true;toast("再次点击以确认：将清空全部数据");setTimeout(()=>resetArmed=false,2500);return;}
+  resetArmed=false;
+  await dbClear();
+  drinks=[];bars=[];barLog=[];friends=[];myFlavors=[];budget=1500;accentHex=null;
+  applyTheme('light');await saveState();
+  renderAll();toast("已清空，记录现在都是你自己的");
+}
+let seedArmed=false;
+function seedConfirm(){
+  if(!seedArmed){seedArmed=true;toast("再次点击以确认：载入示例数据");setTimeout(()=>seedArmed=false,2500);return;}
+  seedArmed=false;seedDemo();toast("已载入示例数据");
+}
+function delClick(kind,key,el){const sig=kind+":"+key;if(delPending===sig){executeDel(kind,key);delPending=null;return;}delPending=sig;document.querySelectorAll(".conf").forEach(x=>x.classList.remove("conf"));el.classList.add("conf");toast("再次点击确认删除");clearTimeout(delTimer);delTimer=setTimeout(()=>{delPending=null;el.classList.remove("conf");},3000);}
+function executeDel(kind,key){
+  if(kind==="drink"){drinks=drinks.filter(d=>d.id!==Number(key));}
+  else if(kind==="bar"){barLog=barLog.filter(w=>w.id!==Number(key));}
+  else if(kind==="barcard"){bars=bars.filter(b=>b.id!==Number(key));}
+  else if(kind==="friend"){friends=friends.filter(f=>f!==key);}
+  renderTimeline();renderSpend();renderFilters();
+  if(document.getElementById("page-me").classList.contains("active")){renderMe();renderFriends();}
+  if(document.getElementById("page-bar").classList.contains("active")){renderBarLog();}
+  if(document.getElementById("page-data").classList.contains("active"))renderDashboard();
+  toast("已删除");saveState();
+}
+
+
+/* ------------- calc ------------- */
+const sum=(arr,f)=>arr.reduce((s,x)=>s+f(x),0);
+function calc(){
+  const personal=sum(drinks.filter(d=>d.source==="SELF"),d=>d.price);
+  const treat=sum(drinks.filter(d=>d.source==="TREAT_OTHERS"),d=>d.price);
+  const treated=sum(drinks.filter(d=>d.source==="TREATED"),d=>d.price);
+  const table=sum(bars,b=>b.tableTotal);
+  const selfCups=drinks.filter(d=>d.source==="SELF").length;
+  const maxCup=Math.max(0,...drinks.filter(d=>d.source==="SELF").map(d=>d.price));
+  return {personal,treat,treated,table,selfCups,avg:selfCups?Math.round(personal/selfCups):0,max:maxCup};
+}
+
+/* ------------- animate number ------------- */
+function animNum(el,to,prefix="",dur=650){
+  if(!el)return; const from=parseFloat((el.dataset.v||"0"))||0; el.dataset.v=to;
+  const t0=performance.now();
+  function step(t){const p=Math.min(1,(t-t0)/dur);const e=1-Math.pow(1-p,3);
+    el.textContent=prefix+Math.round(from+(to-from)*e).toLocaleString();
+    if(p<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+
+/* ------------- render spending ------------- */
+function renderSpend(){
+  const c=calc();
+  const main=mode==="personal"?c.personal:(c.personal+c.treat);
+  animNum(document.getElementById("amt-main"),main);
+  animNum(document.getElementById("amt-main2"),mode==="personal"?c.personal:c.table);
+  document.getElementById("amt-lbl").textContent=mode==="personal"?"累计 · 个人消费":"累计 · 我的实付(含请客)";
+  document.getElementById("amt-lbl2").textContent=mode==="personal"?"累计 · 个人消费":"消费总账";
+  // quick (using proportion of demo periods)
+  animNum(document.getElementById("q-today"),Math.round(c.personal*0.32),"¥");
+  animNum(document.getElementById("q-week"),Math.round(c.personal*0.55),"¥");
+  animNum(document.getElementById("q-month"),Math.round(c.personal*0.78),"¥");
+  animNum(document.getElementById("q-year"),c.personal,"¥");
+  document.getElementById("q2-cup").textContent=c.selfCups;
+  document.getElementById("q2-avg").textContent="¥"+c.avg;
+  document.getElementById("q2-max").textContent="¥"+c.max;
+  // social extra
+  document.getElementById("s-treat").textContent="¥"+c.treat;
+  document.getElementById("s-treated").textContent="¥"+c.treated;
+  document.getElementById("s-table").textContent="¥"+c.table;
+  document.getElementById("s2-treat").textContent="¥"+c.treat;
+  document.getElementById("s2-treated").textContent="¥"+c.treated;
+  document.getElementById("s2-table").textContent="¥"+c.table;
+  document.getElementById("social-extra").classList.toggle("show",mode==="social");
+  document.getElementById("social-extra2").classList.toggle("show",mode==="social");
+  // budget (only if the budget card is present, e.g. on other pages)
+  const budEl=document.getElementById("bud-used");
+  if(budEl){
+    const used=Math.round(c.personal*0.78); const pct=Math.min(100,Math.round(used/budget*100));
+    budEl.textContent="¥"+used;
+    document.getElementById("bud-total").textContent="¥"+budget;
+    const fill=document.getElementById("bud-fill");
+    fill.style.width=pct+"%";
+    fill.style.background=pct>85?"linear-gradient(90deg,#c0455a,#e0687a)":"linear-gradient(90deg,var(--gold),var(--gold2))";
+  }
+  // me stats
+  document.getElementById("me-personal").textContent="¥"+c.personal;
+  document.getElementById("me-total").textContent=drinks.length;
+  document.getElementById("me-cups").textContent=drinks.filter(d=>d.source!=="TASTE").length;
+  document.getElementById("me-bars").textContent=bars.length;
+  document.getElementById("me-fav").textContent=drinks.filter(d=>d.fav).length;
+  const firstDate=drinks.length?drinks.map(d=>d.date).sort()[0]:null;
+  const days=firstDate?Math.max(0,Math.floor((Date.now()-new Date(firstDate))/86400000))+1:0;
+  const mdEl=document.getElementById("me-days");if(mdEl)mdEl.textContent=days;
+  document.getElementById("cnt-week").textContent=drinks.filter(d=>d.day==="今天"||d.date>="2026-07-13").length;
+}
+function setMode(m,btn){mode=m;document.querySelectorAll('.mode-switch button[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));renderSpend();}
+
+/* ------------- source badge ------------- */
+const SRC_LABEL={SELF:"自费自饮",TASTE:"试饮一口",TREATED:"他人请我",TREAT_OTHERS:"我请别人"};
+function treatedWhoTxt(d){
+  if(d.treatedType==="bartender")return "调酒师赠送";
+  if(d.treatedType==="friend"&&d.treatedBy)return d.treatedBy+" 请";
+  return "他人请我";
+}
+function srcBadge(d){
+  let extra="";
+  if(d.source==="TREATED")extra=" · "+treatedWhoTxt(d);
+  if(d.source==="TREAT_OTHERS"&&d.treatedWhom)extra=" · 请"+d.treatedWhom.join("、");
+  return `<span class="src src-${d.source}">${SRC_LABEL[d.source]}${extra}</span>`;
+}
+const stars=n=>"★".repeat(n)+"☆".repeat(5-n);
+
+/* ------------- timeline ------------- */
+function drinkCardHTML(d){
+  const priceHtml=d.source==="TASTE"
+    ?(d.price>0?`<span style="color:var(--dim)">试饮 ¥${d.price} · 不计自费</span>`:`<span style="color:var(--dim)">试饮 · 不计费</span>`)
+    :(d.price>0?`<span class="price">¥${d.price}</span>`:`<span style="color:var(--dim)">— 未计费</span>`);
+  return `<div class="ck" onclick="openDetail(${d.id})">
+    <div class="ck-photo" style="background-image:url('${d.img}')">
+      <span class="src src-${d.source}">${SRC_LABEL[d.source]}</span>
+      <span class="fav">${d.fav?"❤️":"🤍"}</span>
+    </div>
+    <div class="ck-body">
+      <div class="ck-top"><div class="ck-nm">${d.name}</div><div class="ck-acts"><span class="ck-ic pen" title="编辑" onclick="event.stopPropagation();openAddForm(${d.id})">${ICON_PEN}</span><span class="ck-ic del" title="删除" onclick="event.stopPropagation();delClick('drink',${d.id},this)">${ICON_TRASH}</span></div></div>
+      <div class="ck-bar"><span style="display:inline-flex;width:13px;height:13px;vertical-align:-2px;">${ICON_PIN}</span> ${d.bar}</div>
+      <div class="ck-meta">${priceHtml}<span class="abv">${d.base} · ${d.abv}%</span><span class="stars">${stars(d.stars)}</span></div>
+      <div class="tags">${d.flavors.map(f=>`<span class="tag">${f}</span>`).join("")}</div>
+      <div class="note">"${d.note}"</div>
+    </div></div>`;
+}
+function sortList(list){
+  const dir = sortOrd==="asc"?1:-1;
+  if(sortDim==="price") list.sort((a,b)=>dir*((a.price||0)-(b.price||0))||b.date.localeCompare(a.date));
+  else if(sortDim==="abv") list.sort((a,b)=>dir*((a.abv||0)-(b.abv||0))||b.date.localeCompare(a.date));
+  else list.sort((a,b)=>dir*(a.date.localeCompare(b.date)||a.id-b.id));
+}
+function renderTimeline(){
+  const wrap=document.getElementById("timeline");
+  populatePeriod();
+  let list=filteredDrinks();
+  if(curFilter==="收藏") list=list.filter(d=>d.fav);
+  const kwEl=document.getElementById("search-input");
+  const kw=kwEl?kwEl.value.trim().toLowerCase():"";
+  if(kw){
+    list=list.filter(d=>[d.name,d.bar,d.base,d.note,...(d.flavors||[])].join(" ").toLowerCase().includes(kw));
+  }
+  sortList(list);
+  if(!list.length){wrap.innerHTML='<div class="empty">没有符合条件的记录</div>';return;}
+  if(sortDim==="time"){
+    let html="",lastDay="";
+    list.forEach(d=>{
+      if(d.day!==lastDay){html+=`<div class="tl-day">${d.day==="今天"?"今天 · 07/18":d.date}</div>`;lastDay=d.day;}
+      html+=drinkCardHTML(d);
+    });
+    wrap.innerHTML=html;
+  } else {
+    wrap.innerHTML=list.map(d=>drinkCardHTML(d)).join("");
+  }
+}
+function updateSortUI(){
+  const dimMap={time:"时间",price:"价格",abv:"度数"};
+  const lbl=document.getElementById("sd-dim-label");if(lbl)lbl.textContent=dimMap[sortDim];
+  document.querySelectorAll('#sd-menu .sd-opt').forEach(o=>o.classList.toggle('on',o.dataset.dim===sortDim));
+  const arr=document.getElementById("sd-arr");if(arr){arr.textContent=sortOrd==='asc'?'↑':'↓';}
+  const ol=document.getElementById("sd-ord-label");if(ol)ol.textContent=sortOrd==='asc'?'正序':'倒序';
+}
+function toggleSortDrop(e){if(e)e.stopPropagation();const d=document.getElementById('sort-drop');if(d)d.classList.toggle('open');}
+function closeSortDrop(){const d=document.getElementById('sort-drop');if(d)d.classList.remove('open');}
+function pickSortDim(k){sortDim=k;updateSortUI();closeSortDrop();renderTimeline();}
+function toggleSortOrd(){sortOrd=sortOrd==="asc"?"desc":"asc";updateSortUI();renderTimeline();}
+function renderFilters(){
+  const opts=["全部","收藏"];
+  document.getElementById("filter-row").innerHTML=opts.map(o=>`<span class="f ${o===curFilter?'on':''}" onclick="setFilter('${o}',this)">${o}</span>`).join("");
+}
+function setFilter(f,el){curFilter=f;document.querySelectorAll('#filter-row .f').forEach(x=>x.classList.remove('on'));el.classList.add('on');renderTimeline();}
+
+/* period (year / month) filter */
+function periodMatch(date){
+  if(curYear!=="全部" && !date.startsWith(curYear)) return false;
+  if(curMonth!=="全部" && date.slice(5,7)!==curMonth) return false;
+  return true;
+}
+function filteredDrinks(){return drinks.filter(d=>periodMatch(d.date));}
+function populatePeriod(){
+  const years=[...new Set(drinks.map(d=>d.date.slice(0,4)))].sort().reverse();
+  const yOpts=['<option value="全部">全部年份</option>'].concat(years.map(y=>`<option value="${y}">${y} 年</option>`));
+  ['log-year','data-year'].forEach(id=>{const s=document.getElementById(id);if(s){s.innerHTML=yOpts;let ok=false;for(const o of s.options){if(o.value===curYear){s.value=curYear;ok=true;break;}}if(!ok){s.value="全部";curYear="全部";}}});
+  const mOpts=['<option value="全部">全部月份</option>'].concat([...Array(12)].map((_,i)=>{const m=String(i+1).padStart(2,'0');return `<option value="${m}">${m} 月</option>`;}));
+  ['log-month','data-month'].forEach(id=>{const s=document.getElementById(id);if(s){s.innerHTML=mOpts;let ok=false;for(const o of s.options){if(o.value===curMonth){s.value=curMonth;ok=true;break;}}if(!ok){s.value="全部";curMonth="全部";}}});
+}
+
+/* ------------- dashboard ------------- */
+function renderDashboard(){
+  populatePeriod();
+  const ds=filteredDrinks();
+  const cF={personal:sum(ds.filter(d=>d.source==="SELF"),d=>d.price),selfCups:ds.filter(d=>d.source==="SELF").length};
+  const maxF=Math.max(0,...ds.filter(d=>d.source==="SELF").map(d=>d.price));
+  const avgF=cF.selfCups?Math.round(cF.personal/cF.selfCups):0;
+  animNum(document.getElementById("amt-main2"),cF.personal);
+  document.getElementById("amt-lbl2").textContent=curYear+"/"+curMonth+" · 个人消费";
+  document.getElementById("q2-cup").textContent=cF.selfCups;
+  document.getElementById("q2-avg").textContent="¥"+avgF;
+  document.getElementById("q2-max").textContent="¥"+maxF;
+  // trend 6 months —— 真实数据（随年月筛选 / 清空归零）
+  const nowY=new Date().getFullYear(), nowM=new Date().getMonth()+1;
+  const pad=n=>String(n).padStart(2,"0");
+  const aY=(curYear!=="全部")?parseInt(curYear):nowY;
+  const aM=(curMonth!=="全部")?parseInt(curMonth):nowM;
+  const trend=[];
+  for(let i=5;i>=0;i--){let yy=aY,mm=aM-i;while(mm<=0){mm+=12;yy--;}const ym=yy+"-"+pad(mm);const v=drinks.filter(x=>x.date&&x.date.startsWith(ym)).reduce((s,x)=>s+(+x.price||0),0);trend.push({m:mm+"月",v});}
+  const maxV=Math.max(1,...trend.map(t=>t.v));
+  document.getElementById("trend-bars").innerHTML=trend.map(t=>`<div class="col"><div class="bar" style="height:0" data-h="${t.v?Math.round(t.v/maxV*100):3}"><span>¥${t.v}</span></div><div class="x">${t.m}</div></div>`).join("");
+  // rhythm 近 30 天 / 选定月逐日 —— 真实数据
+  let daysArr=[];
+  if(curMonth!=="全部"){
+    const dim=new Date(aY,aM,0).getDate();
+    for(let d=1;d<=dim;d++){const ds2=aY+"-"+pad(aM)+"-"+pad(d);const v=drinks.filter(x=>x.date===ds2).reduce((s,x)=>s+(+x.price||0),0);daysArr.push(v);}
+  }else{
+    for(let k=29;k>=0;k--){const dt=new Date();dt.setDate(dt.getDate()-k);const ds2=dt.getFullYear()+"-"+pad(dt.getMonth()+1)+"-"+pad(dt.getDate());const v=drinks.filter(x=>x.date===ds2).reduce((s,x)=>s+(+x.price||0),0);daysArr.push(v);}
+  }
+  const rMax=Math.max(1,...daysArr);
+  document.getElementById("rhythm-bars").innerHTML=daysArr.map(v=>`<div class="col"><div class="bar" style="height:0;background:linear-gradient(to top,var(--gold),var(--gold2));" data-h="${v?Math.round(v/rMax*100):3}"></div></div>`).join("");
+  setTimeout(()=>{document.querySelectorAll('.bars .bar').forEach(b=>{if(b.dataset.h)b.style.height=b.dataset.h+"%";});},60);
+
+  // donut base spirits
+  const baseCnt={};ds.forEach(d=>baseCnt[d.base]=(baseCnt[d.base]||0)+1);
+  const colors={"金酒":"#3fae9e","威士忌":"#d9a441","伏特加":"#9b6bd6","龙舌兰":"#5bbf7a","朗姆":"#5a94d6","白兰地":"#c0455a"};
+  const total=drinks.length;let acc=0;const R=54,C=2*Math.PI*R;
+  let segs="",legend="";
+  Object.entries(baseCnt).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+    const frac=v/total;const len=frac*C;
+    segs+=`<circle r="${R}" cx="64" cy="64" fill="none" stroke="${colors[k]||'#888'}" stroke-width="16" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-acc}" transform="rotate(-90 64 64)"/>`;
+    acc+=len;
+    legend+=`<div class="row"><span class="lg" style="background:${colors[k]||'#888'}"></span>${k}<span class="pv">${v}杯 · ${Math.round(frac*100)}%</span></div>`;
+  });
+  document.getElementById("donut").innerHTML=`<svg viewBox="0 0 128 128" width="128" height="128">${segs}<text x="64" y="60" text-anchor="middle" fill="#f4ece6" font-size="22" font-weight="800">${total}</text><text x="64" y="78" text-anchor="middle" fill="#8a7a70" font-size="10">杯记录</text></svg>`;
+  document.getElementById("donut-legend").innerHTML=legend;
+
+  // flavor word cloud (staggered / 错落有致)
+  const fl={};ds.forEach(d=>d.flavors.forEach(f=>fl[f]=(fl[f]||0)+1));
+  const fMax=Math.max(...Object.values(fl));
+  const yOff=[-10,8,-4,13,-12,5,-7,10,-3,7,-9,4];
+  document.getElementById("cloud").innerHTML=Object.entries(fl).sort((a,b)=>b[1]-a[1]).map(([k,v],i)=>{
+    const sz=14+v/fMax*15;
+    const ty=yOff[i%yOff.length];
+    const op=.5+v/fMax*.5;
+    const col=i===0?"var(--gold2)":(v>=fMax*0.55?"var(--gold)":"var(--sub)");
+    return `<span class="w" style="font-size:${sz}px;transform:translateY(${ty}px);opacity:${op};color:${col};">${k}</span>`;
+  }).join("");
+
+  // 我的鸡尾酒排行榜
+  renderRankList();
+}
+
+function renderRankList(){
+  // 按喝的次数，次数相同按评分，都相同按最近打卡时间倒序；并列不合并，分开展示
+  const byName={};
+  filteredDrinks().forEach(d=>{
+    if(!byName[d.name])byName[d.name]={name:d.name,count:0,sum:0,maxDate:"0000-00-00"};
+    byName[d.name].count++;byName[d.name].sum+=d.stars;
+    if(d.date>byName[d.name].maxDate)byName[d.name].maxDate=d.date;
+  });
+  const arr=Object.values(byName).map(x=>({name:x.name,count:x.count,avg:x.count?x.sum/x.count:0,maxDate:x.maxDate}));
+  arr.sort((a,b)=>b.count-a.count||b.avg-a.avg||b.maxDate.localeCompare(a.maxDate));
+  const rows=arr.map((r,i)=>{
+    const hide=(i>=3&&!rankExpanded)?' style="display:none"':'';
+    return `<div class="ti"${hide}><div class="rk ${i===0?'g1':''}">${i+1}</div><div class="info">${r.name}<br><small>喝过 ${r.count} 次</small></div><div class="rv">${r.count}×</div></div>`;
+  }).join("");
+  const more=arr.length>3?`<div class="rank-more" onclick="toggleRank()">${rankExpanded?`收起 ▲`:`展开全部 ${arr.length} 款 ▼`}</div>`:"";
+  document.getElementById("top-list").innerHTML=arr.length?rows+more:'<div class="empty">还没有记录</div>';
+}
+function toggleRank(){rankExpanded=!rankExpanded;renderRankList();}
+
+/* ------------- bars & fav on me page ------------- */
+function barCardHTML(b){return `
+    <div class="ck barlog" style="cursor:default;">
+      <div class="body">
+        <div class="ck-top" style="align-items:center;">
+          <div class="ck-nm" style="font-size:15px;font-weight:800;color:var(--txt);">${b.name} ${b.fav?'<span style="font-size:12px;">❤️</span>':''}</div>
+          <div class="bar-acts">
+            <span class="bl-status done">${ICON_CHECK}已打卡</span>
+            <span class="mini-ic del" title="删除" onclick="delClick('barcard',${b.id},this)">${ICON_TRASH}</span>
+          </div>
+        </div>
+        <div class="meta" style="align-items:center;gap:6px;font-size:11px;color:var(--sub);"><span class="bloc">${ICON_PIN}${b.loc||"—"}</span></div>
+        <div class="b-sub">去过 ${b.visits||0} 次 · 我的累计 ¥${b.myTotal||0} · 消费总账 ¥${b.tableTotal||0}</div>
+        ${b.shot?`<div style="margin-top:8px;height:88px;border-radius:10px;background-image:url('${b.shot}');background-size:cover;background-position:center;"></div>`:''}
+        ${(b.logs&&b.logs.length)?b.logs.map(l=>`
+          <div class="bl-log">
+            <div class="bl-log-hd">${l.date||""} 打卡</div>
+            <div class="meta" style="margin-top:3px;color:var(--gold);">${l.stars?stars(l.stars):"—"}</div>
+          </div>`).join(""):""}
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;"><span class="mini-ic pen" title="编辑" onclick="openBarLog(${b.id},true)">${ICON_PEN}</span></div>
+      </div></div>`;
+}
+function favCardHTML(d){return `
+    <div class="ck" onclick="openDetail(${d.id})">
+      <div class="ck-photo" style="background-image:url('${d.img}')"><span class="fav">❤️</span></div>
+      <div class="ck-body">
+        <div class="ck-top"><div class="ck-nm">${d.name}</div><div class="ck-acts"><span class="ck-ic pen" title="编辑" onclick="event.stopPropagation();openAddForm(${d.id})">${ICON_PEN}</span><span class="ck-ic del" title="删除" onclick="event.stopPropagation();delClick('drink',${d.id},this)">${ICON_TRASH}</span></div></div>
+        <div class="ck-bar"><span style="display:inline-flex;width:13px;height:13px;vertical-align:-2px;">${ICON_PIN}</span> ${d.bar}</div>
+        <div class="ck-meta"><span class="stars">${stars(d.stars)}</span><span class="abv">${d.base} · ${d.abv}%</span></div>
+        <div class="tags">${d.flavors.map(f=>`<span class="tag">${f}</span>`).join("")}</div>
+      </div></div>`;
+}
+function renderMyBars(){
+  const wrap=document.getElementById("bars-list");if(!wrap)return;
+  const kwEl=document.getElementById("bar-search");
+  const kw=kwEl?kwEl.value.trim().toLowerCase():"";
+  const list=kw?bars.filter(b=>b.name.toLowerCase().includes(kw)):bars;
+  wrap.innerHTML=list.length?list.map(barCardHTML).join(""):'<div class="empty">没有匹配的已打卡酒吧</div>';
+}
+function renderMe(){
+  const favs=drinks.filter(d=>d.fav);
+  document.getElementById("fav-list").innerHTML=favs.length?favs.map(favCardHTML).join(""):'<div class="empty">还没有收藏</div>';
+  const fb=bars.filter(b=>b.fav);
+  document.getElementById("fav-bars-list").innerHTML=fb.length?fb.map(barCardHTML).join(""):'<div class="empty">还没有收藏的酒吧，去酒吧模块看看</div>';
+}
+
+/* ------------- navigation ------------- */
+function go(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.tabbar .tb').forEach(x=>x.classList.remove('on'));
+  if(el)el.classList.add('on');
+  document.getElementById('screen').scrollTop=0;
+  if(p==="data"){renderSpend();renderDashboard();}
+  if(p==="me"){renderMe();renderFriends();renderSpend();}
+  if(p==="bar"){renderBarLog();}
+  if(p==="log")renderSpend();
+}
+function toggleColl(h){const c=h.closest('.coll');if(c)c.classList.toggle('collapsed');}
+function openColl(id){const c=document.getElementById(id);if(c)c.classList.remove('collapsed');}
+
+/* ------------- add sheet ------------- */
+function openAdd(){openAddForm();}
+function openAddForm(id){
+  editId=id||null;
+  closeAll();
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('add-sheet').classList.add('show');
+  if(editId){const d=drinks.find(x=>x.id===editId);if(d){fillForm(d);return;}}
+  resetForm();
+}
+function fillForm(d){
+  document.getElementById('f-name').value=d.name||"";
+  document.getElementById('f-bar').value=d.bar||"";
+  document.getElementById('f-base').value=d.base||"";
+  document.getElementById('f-abv').value=d.abv||"";
+  document.getElementById('f-price').value=d.price||"";
+  document.getElementById('f-note').value=(d.note&&d.note!=="（暂无笔记）")?d.note:"";
+  document.getElementById('f-date').value=d.date||todayStr();
+  const sp=document.querySelector('#src-pick .sp[data-src="'+(d.source||'SELF')+'"]');
+  pickSrc(sp||document.querySelector('#src-pick .sp'));
+  if(d.source==="TREATED"){
+    if(d.treatedType==="bartender"){setTreatedType('bartender');}
+    else{setTreatedType('friend');document.getElementById('f-treated-by').value=d.treatedBy||"";}
+  }
+  if(d.source==="TREAT_OTHERS"){document.getElementById('f-treat-whom').value=(d.treatedWhom&&d.treatedWhom[0])||"";}
+  newFlavors=[...(d.flavors||[])].filter(f=>f!=="未标注");renderFlavorChips();renderFlavorSuggest();
+  newPhoto=d.img||null;
+  const pp=document.getElementById('f-photo-prev');
+  if(newPhoto){pp.style.backgroundImage="url('"+newPhoto+"')";pp.innerHTML="";}
+  else{pp.style.backgroundImage="";pp.innerHTML='<span style="font-size:30px;">📷</span><span style="font-size:12px;">点击上传酒品照片</span>';}
+  document.getElementById('f-photo').value="";
+  pickStar(d.stars||4);
+  document.getElementById('add-title').textContent="编辑记录";
+  document.getElementById('add-save').textContent="保存修改";
+}
+function syncBarOnSave(bar,date){
+  if(bar==="未记录酒吧")return;
+  const ex=bars.find(b=>b.name===bar);
+  if(!ex){
+    bars.unshift({id:Date.now(),name:bar,loc:"—",overall:0,visits:1,myTotal:0,tableTotal:0,fav:false,logs:[{date:date||"",stars:0,review:"",photos:[],desc:""}]});
+    toast("新酒吧已加入已打卡列表 ✓");
+  } else {
+    ex.logs=ex.logs||[];
+    ex.logs.push({date:date||"",stars:ex.overall||0,review:"",photos:[],desc:""});
+    ex.visits=(ex.visits||0)+1;
+    toast("已自动追加打卡记录 ✓");
+  }
+  if(document.getElementById("page-bar").classList.contains("active"))renderBarLog();
+}
+function closeAll(){document.getElementById('mask').classList.remove('show');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show'));}
+function maskClick(){if(document.getElementById('crop-sheet').classList.contains('show')){closeCrop();return;}closeAll();}
+function pickSrc(el){newSrc=el.dataset.src;document.querySelectorAll('#src-pick .sp').forEach(x=>x.classList.remove('on'));el.classList.add('on');
+  // 价格永远可填（试饮也可记价，只是不计入自费）
+  document.getElementById('price-field').style.opacity=1;
+  document.getElementById('f-price').disabled=false;
+  const pl=document.querySelector('#price-field label');
+  if(pl)pl.textContent=(newSrc==="TASTE")?"价格 (¥) · 记录参考，不计自费":(newSrc==="TREATED")?"价格 (¥) · 对方支付":(newSrc==="TREAT_OTHERS")?"价格 (¥) · 我支付":"价格 (¥)";
+  document.getElementById('treated-detail').style.display=(newSrc==="TREATED")?"block":"none";
+  document.getElementById('treat-detail').style.display=(newSrc==="TREAT_OTHERS")?"block":"none";
+}
+function setTreatedType(t){treatedType=t;
+  document.getElementById('tt-friend').classList.toggle('on',t==="friend");
+  document.getElementById('tt-bartender').classList.toggle('on',t==="bartender");
+  document.getElementById('f-treated-by').style.display=(t==="bartender")?"none":"block";
+}
+/* 通用文件选择触发 —— 在用户手势中动态创建临时 input 并 click，安卓 PWA 唯一稳定方案 */
+function triggerFileUpload(targetId){
+  var real=document.getElementById(targetId);if(!real)return;
+  var tmp=document.createElement('input');tmp.type='file';tmp.accept=real.accept||'image/*';
+  if(real.multiple)tmp.multiple=true;
+  tmp.style.position='fixed';tmp.style.top='0';tmp.style.left='0';tmp.style.width='1px';tmp.style.height='1px';tmp.style.opacity='0.01';tmp.style.zIndex='99999';tmp.style.pointerEvents='auto';
+  tmp.onchange=function(){if(tmp.files.length){var dt=new DataTransfer();for(var i=0;i<tmp.files.length;i++)dt.items.add(tmp.files[i]);real.files=dt.files;real.dispatchEvent(new Event('change',{bubbles:true}));}document.body.removeChild(tmp);};
+  document.body.appendChild(tmp);
+  tmp.click();
+  /* 用户取消时清理 */
+  window.addEventListener('focus',function cl(){setTimeout(function(){if(tmp.parentNode&&tmp.files.length===0)document.body.removeChild(tmp);},600);window.removeEventListener('focus',cl);},{once:true});
+}
+function onPhoto(e){const f=e.target.files&&e.target.files[0];if(!f)return;openCrop(f);}
+
+/* ------------- photo cropper ------------- */
+let cropImgEl=null, cropBase=1, cropScale=1, cropX=0, cropY=0, cropVPW=0, cropVPH=0, cropDR=false, cropLX=0, cropLY=0;
+function openCrop(file){
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      cropImgEl=img;
+      document.getElementById('crop-img').src=img.src;
+      document.getElementById('mask').classList.add('show');
+      document.getElementById('crop-sheet').classList.add('show');
+      requestAnimationFrame(()=>{
+        const vp=document.getElementById('crop-vp');
+        cropVPW=vp.offsetWidth; cropVPH=vp.offsetHeight;
+        cropBase=Math.max(cropVPW/img.width, cropVPH/img.height);
+        cropScale=cropBase;
+        document.getElementById('crop-zoom').value=0;
+        centerCrop(); applyCropTransform();
+      });
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function centerCrop(){cropX=(cropVPW-cropImgEl.width*cropScale)/2; cropY=(cropVPH-cropImgEl.height*cropScale)/2;}
+function clampCrop(){
+  const iw=cropImgEl.width*cropScale, ih=cropImgEl.height*cropScale;
+  cropX=Math.min(0,Math.max(cropVPW-iw,cropX));
+  cropY=Math.min(0,Math.max(cropVPH-ih,cropY));
+}
+function applyCropTransform(){document.getElementById('crop-img').style.transform='translate('+cropX+'px,'+cropY+'px) scale('+cropScale+')';}
+function onCropZoom(){const v=parseFloat(document.getElementById('crop-zoom').value)/100;cropScale=cropBase*(1+v*3);clampCrop();applyCropTransform();}
+function cropDown(e){e.preventDefault();cropDR=true;const p=e.touches?e.touches[0]:e;cropLX=p.clientX;cropLY=p.clientY;window.addEventListener('pointermove',cropMove);window.addEventListener('pointerup',cropUp);}
+function cropMove(e){if(!cropDR)return;e.preventDefault();const p=e.touches?e.touches[0]:e;cropX+=(p.clientX-cropLX);cropY+=(p.clientY-cropLY);cropLX=p.clientX;cropLY=p.clientY;clampCrop();applyCropTransform();}
+function cropUp(){cropDR=false;window.removeEventListener('pointermove',cropMove);window.removeEventListener('pointerup',cropUp);}
+function applyCrop(){
+  if(!cropImgEl)return;
+  const dpr=2;
+  const canvas=document.createElement('canvas');canvas.width=Math.round(cropVPW*dpr);canvas.height=Math.round(cropVPH*dpr);
+  const ctx=canvas.getContext('2d');
+  const sx=-cropX/cropScale, sy=-cropY/cropScale, sw=cropVPW/cropScale, sh=cropVPH/cropScale;
+  ctx.drawImage(cropImgEl,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+  const url=canvas.toDataURL('image/jpeg',0.9);
+  newPhoto=url;
+  const p=document.getElementById('f-photo-prev');p.style.backgroundImage="url('"+url+"')";p.innerHTML="";
+  closeCrop();
+}
+function closeCrop(){document.getElementById('crop-sheet').classList.remove('show');if(!document.querySelector('.sheet.show:not(#crop-sheet)'))document.getElementById('mask').classList.remove('show');}
+function tog(el){el.classList.toggle('on');}
+function addFlavor(){const inp=document.getElementById('f-flavor-input');const v=inp.value.trim();if(!v)return;if(!newFlavors.includes(v))newFlavors.push(v);if(!myFlavors.includes(v))myFlavors.push(v);inp.value="";renderFlavorChips();renderFlavorSuggest();saveState();}
+function addExistingFlavor(f){if(!newFlavors.includes(f))newFlavors.push(f);renderFlavorChips();renderFlavorSuggest();}
+function removeFlavor(i){newFlavors.splice(i,1);renderFlavorChips();renderFlavorSuggest();}
+function renderFlavorChips(){document.getElementById('f-flavors').innerHTML=newFlavors.map((f,i)=>`<span class="chip on" onclick="removeFlavor(${i})">${f} <span style="opacity:.55;font-size:10px;">✕</span></span>`).join("");}
+function renderFlavorSuggest(){const wrap=document.getElementById('f-flavor-suggest');if(!wrap)return;const sug=myFlavors.filter(f=>!newFlavors.includes(f));wrap.innerHTML=sug.length?`<span style="width:100%;font-size:11px;color:var(--dim);margin-bottom:2px;">我的风味（点击直接添加）</span>`+sug.map(f=>`<span class="chip" onclick="addExistingFlavor('${f.replace(/'/g,"\\'")}')">${f}</span>`).join(""):"";}
+function pickStar(v){newStars=v;document.querySelectorAll('#f-stars .s').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.v)<=v));}
+async function saveDrink(){
+  const name=document.getElementById('f-name').value.trim()||"未命名鸡尾酒";
+  const bar=document.getElementById('f-bar').value.trim()||"未记录酒吧";
+  const base=document.getElementById('f-base').value.trim()||"其他";
+  const abv=parseFloat(document.getElementById('f-abv').value)||0;
+  // 试饮也可填价格作参考，但通过 source=TASTE 保证不计入自费（见 calc）
+  const price=parseFloat(document.getElementById('f-price').value)||0;
+  const flavors=[...newFlavors];
+  const note=document.getElementById('f-note').value.trim()||"（暂无笔记）";
+  const date=document.getElementById('f-date').value||todayStr();
+  const day=date===todayStr()?"今天":date.slice(5).replace("-","/");
+  const imgPool=[IMG.negroni,IMG.martini,IMG.oldf,IMG.margarita,IMG.cosmo,IMG.whisky];
+  let img;
+  if(newPhoto){const id=await storeImage(newPhoto);img='id:'+id;}
+  else{img=imgPool[Math.floor(Math.random()*imgPool.length)];}
+  const nd={id:Date.now(),name,bar,base,abv,price,source:newSrc,flavors:flavors.length?flavors:["未标注"],stars:newStars,fav:false,note,img,date,day};
+  if(newSrc==="TREATED"){nd.treatedType=treatedType;if(treatedType==="friend"){const nb=document.getElementById('f-treated-by').value.trim();nd.treatedBy=nb;addFriend(nb);}}
+  if(newSrc==="TREAT_OTHERS"){const nw=document.getElementById('f-treat-whom').value.trim();nd.treatedWhom=[nw];addFriend(nw);}
+  if(editId){
+    const d=drinks.find(x=>x.id===editId);
+    if(d){
+      d.name=name;d.bar=bar;d.base=base;d.abv=abv;d.price=price;
+      d.flavors=flavors.length?flavors:["未标注"];d.stars=newStars;d.note=note;
+      d.date=date;d.day=day;d.source=newSrc;
+      if(newPhoto)d.img=img;
+      if(newSrc==="TREATED"){d.treatedType=treatedType;d.treatedBy=(treatedType==="friend")?document.getElementById('f-treated-by').value.trim():undefined;if(d.treatedBy)addFriend(d.treatedBy);}
+      else{d.treatedType=undefined;d.treatedBy=undefined;}
+      if(newSrc==="TREAT_OTHERS"){const nw=document.getElementById('f-treat-whom').value.trim();d.treatedWhom=[nw];addFriend(nw);}
+      else{d.treatedWhom=undefined;}
+    }
+  } else {
+    drinks.unshift(nd);
+  }
+  syncBarOnSave(bar,date);
+  closeAll();resetForm();await saveState();await resolveImgRefs();
+  renderTimeline();renderSpend();renderFilters();
+  if(document.getElementById('page-bar').classList.contains('active'))renderBarLog();
+  if(document.getElementById('page-me').classList.contains('active'))renderMe();
+  toast(editId?"已保存修改 ✓":"已记录 · 花销实时更新 ✓");
+}
+function resetForm(){
+  editId=null;
+  document.getElementById('f-name').value="";document.getElementById('f-bar').value="";document.getElementById('f-base').value="";
+  document.getElementById('f-abv').value="";document.getElementById('f-price').value="";document.getElementById('f-note').value="";
+  document.getElementById('f-date').value=todayStr();
+  document.getElementById('add-title').textContent="记一杯 🍸";
+  document.getElementById('add-save').textContent="保存 · 即时更新花销";
+  newFlavors=[];renderFlavorChips();renderFlavorSuggest();
+  newPhoto=null;const pp=document.getElementById('f-photo-prev');pp.style.backgroundImage="";pp.innerHTML='<span style="font-size:30px;">📷</span><span style="font-size:12px;">点击上传酒品照片</span>';
+  document.getElementById('f-photo').value="";
+  treatedType="friend";document.getElementById('tt-friend').classList.add('on');document.getElementById('tt-bartender').classList.remove('on');document.getElementById('f-treated-by').style.display="block";document.getElementById('f-treated-by').value="";
+  document.getElementById('f-treat-whom').value="";
+  document.getElementById('treated-detail').style.display="none";document.getElementById('treat-detail').style.display="none";
+  newSrc="SELF";document.querySelectorAll('#src-pick .sp').forEach((x,i)=>x.classList.toggle('on',i===0));
+  document.querySelector('#price-field label').textContent="价格 (¥)";
+  pickStar(4);document.getElementById('f-price').disabled=false;document.getElementById('price-field').style.opacity=1;
+}
+
+/* ------------- detail / share ------------- */
+function openDetail(id){
+  const d=drinks.find(x=>x.id===id);if(!d)return;
+  const extra=d.source==="TREATED"?(d.treatedType==="bartender"?"调酒师赠送":d.treatedBy?`由 ${d.treatedBy} 请客`:"他人请我"):d.source==="TREAT_OTHERS"&&d.treatedWhom?`我请了 ${d.treatedWhom.join("、")}`:SRC_LABEL[d.source];
+  const sheet=document.getElementById('detail-sheet');
+  sheet.innerHTML=`
+    <div class="grip"></div>
+    <div class="sh-hd"><h3>品鉴详情</h3><span class="x" onclick="closeAll()">✕</span></div>
+    <div class="form">
+      <div class="share-card" id="share-card">
+        <div class="sc-img" style="background-image:url('${d.img}')"></div>
+        <div class="sc-b">
+          <div class="nm">${d.name}</div>
+          <div class="bar">📍 ${d.bar}</div>
+          <div class="sc-meta">
+            <span style="color:var(--gold2);font-weight:700;">${d.price>0?"¥"+d.price:"未计费"}</span>
+            <span>${d.base} · ${d.abv}% ABV</span>
+            <span class="stars" style="color:var(--gold);">${stars(d.stars)}</span>
+          </div>
+          <div style="font-size:12px;color:var(--sub);margin-top:9px;">你已喝过 <b style="color:var(--gold2)">${drinks.filter(x=>x.name===d.name).length}</b> 次</div>
+          <div class="tags" style="margin-bottom:4px;">${d.flavors.map(f=>`<span class="tag">${f}</span>`).join("")} <span class="src src-${d.source}" style="padding:3px 9px;border-radius:20px;font-size:10.5px;">${extra}</span></div>
+          <div class="sc-note">"${d.note}"</div>
+          <div class="sc-ft">
+            <div class="qr"></div>
+            <div class="brand"><div class="l">pourfolio-个人鸡尾酒记录</div><div class="s">${d.date} · 我的鸡尾酒手记</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="share-actions">
+        <div class="sa" onclick="openAddForm(${d.id})"><span class="ic">${ICON_PEN}</span>编辑</div>
+        <div class="sa" onclick="toggleFav(${d.id})"><span class="ic">${d.fav?"❤️":"🤍"}</span>${d.fav?"已收藏":"收藏"}</div>
+        <div class="sa" onclick="toast('已生成图片，保存到相册 ✓')"><span class="ic">🖼️</span>存图片</div>
+        <div class="sa" onclick="toast('已调起微信分享 ✓')"><span class="ic">💬</span>分享</div>
+        <div class="sa" onclick="reorder(${d.id})"><span class="ic">🔁</span>再来一杯</div>
+      </div>
+    </div>`;
+  document.getElementById('mask').classList.add('show');sheet.classList.add('show');
+}
+function toggleFav(id){const d=drinks.find(x=>x.id===id);if(d){d.fav=!d.fav;openDetail(id);renderTimeline();renderSpend();toast(d.fav?"已加入收藏 ❤️":"已取消收藏");saveState();}}
+function reorder(id){const d=drinks.find(x=>x.id===id);if(!d)return;closeAll();
+  const nd={...d,id:Date.now(),date:todayStr(),day:"今天",note:d.note};drinks.unshift(nd);renderTimeline();renderSpend();toast("已复用「"+d.name+"」再记一杯 ✓");}
+function drill(label){toast("下钻 · "+label+" 明细（Demo）");}
+
+/* ------------- friend interaction ledger ------------- */
+function friendStats(name){
+  const heTreatedMe=drinks.filter(d=>d.source==="TREATED"&&d.treatedType!=="bartender"&&d.treatedBy===name);
+  const iTreatedHim=drinks.filter(d=>d.source==="TREAT_OTHERS"&&d.treatedWhom&&d.treatedWhom.includes(name));
+  const sum=a=>a.reduce((s,x)=>s+x.price,0);
+  return {
+    heCount:heTreatedMe.length, heSum:sum(heTreatedMe),
+    iCount:iTreatedHim.length, iSum:sum(iTreatedHim),
+    records:drinks.filter(d=>(d.source==="TREATED"&&d.treatedType!=="bartender"&&d.treatedBy===name)||(d.source==="TREAT_OTHERS"&&d.treatedWhom&&d.treatedWhom.includes(name)))
+  };
+}
+function renderFriends(){
+  const wrap=document.getElementById("friend-list");if(!wrap)return;
+  const kwEl=document.getElementById("friend-search");
+  const kw=kwEl?kwEl.value.trim().toLowerCase():"";
+  const list=friends.filter(f=>!kw||f.toLowerCase().includes(kw));
+  if(!list.length){wrap.innerHTML='<div class="empty">'+(kw?"没有匹配的好友":"还没有好友，记一杯「他人请我 / 我请别人」即可自动收录")+'</div>';return;}
+  wrap.innerHTML=list.map(name=>{
+    const s=friendStats(name);
+    return `<div class="ck" style="cursor:pointer;" onclick="openFriend('${name.replace(/'/g,"\\'")}')">
+      <div class="body">
+        <div class="ck-top" style="align-items:center;">
+          <div class="ck-nm" style="font-size:15px;font-weight:800;color:var(--txt);">👤 ${name}</div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <span class="view-ic" onclick="event.stopPropagation();openFriend('${name.replace(/'/g,"\\'")}')">查看交互 ›</span>
+            <span class="ck-ic del" onclick="event.stopPropagation();delClick('friend','${name.replace(/'/g,"\\'")}',this)">${ICON_TRASH}</span>
+          </div>
+        </div>
+        <div class="meta" style="margin-top:7px;gap:14px;font-size:12px;padding-left:20px;">
+          <span style="color:var(--gold2);font-weight:700;">我请 ¥${s.iSum}</span>
+          <span style="color:var(--purple);font-weight:700;">TA请我 ¥${s.heSum}</span>
+          <span style="color:var(--dim);">共 ${s.iCount+s.heCount} 次</span>
+        </div>
+      </div></div>`;
+  }).join("");
+}
+function openFriend(name){
+  const s=friendStats(name);
+  document.getElementById("friend-sh-name").textContent="👤 "+name+" · 同饮好友";
+  const rows=s.records.sort((a,b)=>b.date.localeCompare(a.date)).map(d=>{
+    const dir=d.source==="TREAT_OTHERS"?"我请TA":"TA请我";
+    const col=d.source==="TREAT_OTHERS"?"var(--gold2)":"var(--purple)";
+    return `<div class="ck" style="cursor:default;margin-bottom:8px;"><div class="body">
+      <div class="meta"><span style="font-size:14px;font-weight:800;color:var(--txt);">${d.name}</span><span style="margin-left:auto;font-weight:700;color:${col};">${dir} ¥${d.price}</span></div>
+      <div class="meta" style="margin-top:4px;color:var(--dim);font-size:12px;"><span style="display:inline-flex;width:13px;height:13px;vertical-align:-2px;">${ICON_PIN}</span> ${d.bar} · ${d.date} · ${stars(d.stars)}</div>
+    </div></div>`;
+  }).join("");
+  document.getElementById("friend-sh-body").innerHTML=`
+    <div class="grid2" style="margin-bottom:12px;">
+      <div class="stat"><div class="v" style="color:var(--gold2)">¥${s.iSum}</div><div class="k">我请了 TA · ${s.iCount} 笔</div></div>
+      <div class="stat"><div class="v" style="color:var(--purple)">¥${s.heSum}</div><div class="k">TA 请了我 · ${s.heCount} 笔</div></div>
+    </div>
+    <div class="sec-title" style="padding:4px 0;"><h2>往来记录</h2><span class="act" style="color:var(--dim)">${s.records.length} 条</span></div>
+    ${rows||'<div class="empty">暂无往来记录</div>'}`;
+  document.getElementById('mask').classList.add('show');document.getElementById('friend-sheet').classList.add('show');
+}
+
+/* ------------- bar log (酒吧日志) ------------- */
+let editingBarId=null, editingIsBar=false, barRat={overall:0}, newBarPhotos=[], newShot=null;
+function renderBarLogSafe(){
+  /* 推迟 DOM 替换以避免搜索输入事件处理期间焦点漂移（安卓 WebView 兼容） */
+  const inp=document.getElementById('bar-search');
+  if(inp){inp._selStart=inp.selectionStart;inp._selEnd=inp.selectionEnd;}
+  requestAnimationFrame(()=>{
+    renderBarLog();
+    /* 搜索后保持输入框焦点与光标位置 */
+    if(inp&&document.activeElement!==inp){
+      inp.focus();
+      try{inp.setSelectionRange(inp._selStart||0,inp._selEnd||0);}catch(_){}
+    }
+  });
+}
+function renderBarLog(){
+  renderWantBars();
+  renderMyBars();
+}
+function renderWantBars(){
+  const wrap=document.getElementById("barlog-want");if(!wrap)return;
+  const kwEl=document.getElementById("bar-search");
+  const kw=kwEl?kwEl.value.trim().toLowerCase():"";
+  const list=kw?barLog.filter(w=>w.name.toLowerCase().includes(kw)):barLog;
+  if(!list.length){wrap.innerHTML=kw?'<div class="empty">没有匹配的想去酒吧</div>':'<div class="empty">还没有想去的店，点右上角 ＋ 添加</div>';return;}
+  wrap.innerHTML=list.map(barLogWantCard).join("");
+}
+function barLogWantCard(w){
+  const fromTxt=w.from;
+  const interest=w.interest?`<div class="note" style="margin-top:8px;display:flex;align-items:flex-start;gap:5px;"><span style="display:inline-flex;width:14px;height:14px;flex:0 0 auto;margin-top:1px;">${ICON_BULB}</span><span>${w.interest}</span></div>`:"";
+  return `<div class="ck barlog" style="cursor:default;">
+    <div class="body">
+      <div class="ck-top" style="align-items:center;">
+        <div class="ck-nm" style="font-size:15px;font-weight:800;color:var(--txt);">${w.name}</div>
+        <div class="bar-acts">
+          <span class="mini-ic pen" title="打卡并写日志" onclick="openBarLog(${w.id})">${ICON_CHECK}</span>
+          <span class="bl-status want">${ICON_FLAG}想去</span>
+          <span class="mini-ic del" title="删除" onclick="delClick('bar',${w.id},this)">${ICON_TRASH}</span>
+        </div>
+      </div>
+      <div class="meta" style="align-items:center;gap:6px;font-size:11px;color:var(--sub);"><span class="bloc">${ICON_PIN}${w.loc||"—"}</span><span class="bsub">· ${fromTxt}</span></div>
+      ${interest}
+    </div></div>`;
+}
+function renderBarRatings(){
+  document.getElementById('br-overall').innerHTML=[1,2,3,4,5].map(v=>`<span class="s ${v<=barRat.overall?'on':''}" data-v="${v}" onclick="setBarRating('overall',${v})">★</span>`).join('');
+}
+function setBarRating(dim,n){
+  barRat[dim]=n;
+  const cont=document.getElementById('br-'+dim);
+  if(cont)cont.querySelectorAll('.s').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.v)<=n));
+}
+function setBarStatus(st,el){
+  document.querySelectorAll('#b-status-pick .sp').forEach(x=>x.classList.remove('on'));el.classList.add('on');
+  document.getElementById('b-todo-block').style.display=st==="todo"?"block":"none";
+  document.getElementById('b-done-block').style.display=st==="done"?"block":"none";
+}
+function onBarPhoto(e){
+  const files=e.target.files;if(!files||!files.length)return;
+  [...files].forEach(f=>{const r=new FileReader();r.onload=ev=>{newBarPhotos.push(ev.target.result);renderBarPhotoPreviews();};r.readAsDataURL(f);});
+  e.target.value="";
+}
+function renderBarPhotoPreviews(){
+  const wrap=document.getElementById('b-photos-prev');
+  if(!newBarPhotos.length){wrap.innerHTML='<span id="b-photo-hint" style="font-size:12px;width:100%;text-align:center;">📷 点击上传酒吧照片</span>';return;}
+  const hint=document.getElementById('b-photo-hint');if(hint)hint.style.display='none';
+  wrap.innerHTML=newBarPhotos.map((src,i)=>`<div style="position:relative;width:72px;height:72px;border-radius:10px;background-image:url('${src}');background-size:cover;background-position:center;"><span onclick="removeBarPhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:#c0455a;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;">✕</span></div>`).join('');
+}
+function removeBarPhoto(i){newBarPhotos.splice(i,1);renderBarPhotoPreviews();}
+function openBarLog(id,fromBar){
+  editingBarId=id||null;editingIsBar=!!fromBar;newBarPhotos=[];barRat={overall:0};
+  document.getElementById('b-name').value="";document.getElementById('b-loc').value="";
+  document.getElementById('b-from-type').value="自己刷到";document.getElementById('b-from-friend').value="";document.getElementById('b-from-friend').style.display="none";
+  document.getElementById('b-interest').value="";
+  newShot=null;const _sp=document.getElementById('b-shot-prev');_sp.style.backgroundImage="";_sp.textContent="点击上传参考截图";document.getElementById('b-shot').value="";
+  document.getElementById('b-date').value=todayStr();
+  document.getElementById('b-desc').value="";document.getElementById('b-review').value="";
+  document.getElementById('b-visits').value=1;document.getElementById('b-mytotal').value=0;document.getElementById('b-tabletotal').value=0;document.getElementById('b-fav').checked=false;
+  const sp=document.querySelector('#b-status-pick .sp[data-st="'+(fromBar?"done":"todo")+'"]');
+  document.querySelectorAll('#b-status-pick .sp').forEach(x=>x.classList.remove('on'));sp.classList.add('on');
+  document.getElementById('b-todo-block').style.display=fromBar?"none":"block";document.getElementById('b-done-block').style.display=fromBar?"block":"none";
+  renderBarRatings();renderBarPhotoPreviews();
+  if(id){
+    if(fromBar){
+      const b=bars.find(x=>x.id===id);if(!b)return;
+      document.getElementById('barlog-title').textContent="编辑酒吧";
+      document.getElementById('b-name').value=b.name;document.getElementById('b-loc').value=b.loc||"";
+      document.getElementById('b-visits').value=b.visits||1;document.getElementById('b-mytotal').value=b.myTotal||0;document.getElementById('b-tabletotal').value=b.tableTotal||0;document.getElementById('b-fav').checked=!!b.fav;
+      barRat={overall:b.overall||0};
+      const lg=(b.logs&&b.logs[0])||{};
+      document.getElementById('b-date').value=lg.date||todayStr();
+      document.getElementById('b-desc').value=lg.desc||"";
+      document.getElementById('b-review').value=lg.review||"";
+      newBarPhotos=[...(lg.photos||[])];
+      if(b.shot){const _sp=document.getElementById('b-shot-prev');_sp.style.backgroundImage='url('+b.shot+')';_sp.textContent='';}
+      renderBarRatings();renderBarPhotoPreviews();
+    } else {
+      const w=barLog.find(x=>x.id===id);if(!w)return;
+      document.getElementById('barlog-title').textContent="编辑想去";
+      document.getElementById('b-name').value=w.name;document.getElementById('b-loc').value=w.loc||"";
+      if(w.from&&w.from!=="自己刷到"){document.getElementById('b-from-type').value="friend";document.getElementById('b-from-friend').value=w.from.replace(" 推荐","");document.getElementById('b-from-friend').style.display="block";}
+      document.getElementById('b-interest').value=w.interest||"";
+    }
+  } else {
+    document.getElementById('barlog-title').textContent="添加酒吧";
+  }
+  document.getElementById('mask').classList.add('show');document.getElementById('barlog-sheet').classList.add('show');
+}
+function onBarShot(e){const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{newShot=ev.target.result;const p=document.getElementById('b-shot-prev');p.style.backgroundImage='url('+newShot+')';p.textContent='';};r.readAsDataURL(f);}
+async function saveBarLog(){
+  const name=document.getElementById('b-name').value.trim();if(!name){toast("请填写酒吧名称");return;}
+  const loc=document.getElementById('b-loc').value.trim();
+  const st=document.querySelector('#b-status-pick .sp.on').dataset.st;
+  const checkedIn=st==="done";
+  const ftype=document.getElementById('b-from-type').value;
+  let from="自己刷到";
+  if(ftype==="friend"){const fn=document.getElementById('b-from-friend').value.trim();from=fn?fn+" 推荐":"好友推荐";addFriend(fn);}
+  const interest=document.getElementById('b-interest').value.trim();
+  const date=document.getElementById('b-date').value||todayStr();
+  const desc=document.getElementById('b-desc').value.trim();
+  const review=document.getElementById('b-review').value.trim();
+  const overall=barRat.overall;
+  const visits=parseInt(document.getElementById('b-visits').value)||1;
+  const myTotal=parseInt(document.getElementById('b-mytotal').value)||0;
+  const tableTotal=parseInt(document.getElementById('b-tabletotal').value)||0;
+  const fav=document.getElementById('b-fav').checked;
+  const newPhotos=await (newBarPhotos.length?Promise.all(newBarPhotos.map(async p=>{const id=await storeImage(p);return 'id:'+id;})):Promise.resolve(null));
+  const shotRef=newShot?('id:'+await storeImage(newShot)):null;
+  const logEntry={date:checkedIn?date:"",stars:overall,review,photos:newPhotos||[],desc};
+  if(editingBarId){
+    if(editingIsBar){
+      const b=bars.find(x=>x.id===editingBarId);if(!b)return;
+      Object.assign(b,{name,loc,overall,visits,myTotal,tableTotal,fav,shot:shotRef||b.shot||null});
+      b.logs=b.logs||[];
+      const cur=b.logs[0]||{};
+      b.logs[0]={date:checkedIn?date:(cur.date||""),stars:overall,review,photos:newPhotos?newPhotos:(cur.photos||[]),desc:checkedIn?desc:(cur.desc||"")};
+      toast("已更新酒吧 ✓");
+    } else {
+      const w=barLog.find(x=>x.id===editingBarId);if(!w)return;
+      if(checkedIn){
+        barLog=barLog.filter(x=>x.id!==editingBarId);
+        bars.unshift({id:editingBarId,name,loc,overall,visits,myTotal,tableTotal,fav,shot:shotRef||null,logs:[logEntry]});
+        toast("已转为打卡酒吧 ✓");
+      } else {
+        Object.assign(w,{name,loc,from,interest});
+        toast("已更新想去 ✓");
+      }
+    }
+  } else {
+    if(checkedIn){
+      const ex=bars.find(x=>x.name===name);
+      if(ex){ex.logs=ex.logs||[];ex.logs.push(logEntry);ex.overall=overall||ex.overall;ex.visits=(ex.visits||0)+1;ex.loc=loc||ex.loc;ex.fav=fav||ex.fav;toast("已追加打卡记录 ✓");}
+      else{bars.unshift({id:Date.now(),name,loc,overall,visits:visits||1,myTotal,tableTotal,fav,shot:shotRef,logs:[logEntry]});toast("已记录打卡酒吧 ✓");}
+    } else {
+      barLog.unshift({id:Date.now(),name,loc,from,interest});
+      toast("已加入想去清单");
+    }
+  }
+  closeAll();await saveState();await resolveImgRefs();renderBarLog();
+}
+
+/* ------------- misc ------------- */
+let toastTimer;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800);}
+function tick(){const el=document.getElementById('clock');if(!el)return;const n=new Date();el.textContent=String(n.getHours()).padStart(2,'0')+":"+String(n.getMinutes()).padStart(2,'0');}
+
+/* ------------- init ------------- */
+async function init(){
+  await loadState();
+  /* 初始化日期输入为今日 */
+  document.getElementById('f-date').value=todayStr();
+  document.getElementById('b-date').value=todayStr();
+  document.getElementById('bar-datalist').innerHTML=bars.map(b=>`<option>${b.name}</option>`).join("");
+  renderFriendDatalist();
+  renderFilters();updateSortUI();renderTimeline();renderSpend();tick();setInterval(tick,10000);
+  /* 版本号注入（每次构建更新 APP_VERSION，页面即可见变化，用于确认是否为最新版） */
+  const vTxt='版本 '+APP_VERSION;
+  const vMe=document.getElementById('ver-me');if(vMe)vMe.innerHTML='pourfolio-个人鸡尾酒记录 · '+vTxt;
+  const vSet=document.getElementById('ver-set');if(vSet)vSet.innerHTML='pourfolio-个人鸡尾酒记录 · '+vTxt+'<br>数据仅存于本机，刷新与重开不丢失';
+  const vBadge=document.getElementById('ver-badge');if(vBadge)vBadge.textContent=vTxt;
+  /* Service Worker：平台自适应
+     - CloudStudio 静态服务器无法正确提供 .js（sw.js 永远返回 0 字节），在此托管时 PWA 必然损坏；
+       故自动注销任何残留 SW，改为每次直连服务器加载，保证功能可用。
+     - 其他平台（GitHub Pages / 本地 / 自有服务器）正常注册 SW，启用离线 + 无感更新。 */
+  if('serviceWorker' in navigator){
+    const onCloudStudio = location.hostname.indexOf('app.codebuddy.work') !== -1;
+    if(onCloudStudio){
+      navigator.serviceWorker.getRegistrations().then(regs=>{
+        regs.forEach(r=>r.unregister().catch(()=>{}));
+      }).catch(()=>{});
+    }else{
+      let refreshing=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{if(refreshing)return;refreshing=true;location.reload();});
+      navigator.serviceWorker.register('sw.js').then(reg=>{
+        reg.update();
+        setInterval(()=>reg.update(),60*1000);
+      }).catch(()=>{});
+    }
+  }
+}
+function checkUpdate(){
+  /* CloudStudio 不启用 SW，直接硬刷新即可拉取最新页面 */
+  if(location.hostname.indexOf('app.codebuddy.work')!==-1){location.reload(true);return;}
+  if(!('serviceWorker' in navigator)){toast('当前环境不支持自动更新，请手动刷新');return;}
+  navigator.serviceWorker.getRegistration().then(reg=>{
+    if(reg){reg.update();toast('已触发更新检查，稍候将自动刷新');}
+    else toast('未注册 Service Worker，请刷新页面');
+  }).catch(()=>toast('更新检查失败，请刷新页面'));
+}
+function clearCache(){
+  if('caches' in window){
+    caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))).then(()=>{
+      toast('缓存已清除，正在刷新…');
+      setTimeout(()=>location.reload(true),600);
+    }).catch(()=>location.reload(true));
+  } else location.reload(true);
+}
+const APP_VERSION='2026.07.19-11';
+init();
+</script>
+</body>
+</html>
