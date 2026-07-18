@@ -1,2 +1,2 @@
 # Pourfolio
-个人鸡尾酒记录PWA
+Personal Cocktail Record PWA
