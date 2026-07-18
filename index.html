@@ -771,7 +771,7 @@ function renderFriendDatalist(){const d=document.getElementById('friend-datalist
 /* ------------- state ------------- */
 let mode="personal", curFilter="全部", sortDim="time", sortOrd="desc", rankExpanded=false, newSrc="SELF", newStars=4, newFlavors=[], myFlavors=[], newPhoto=null, treatedType="friend", editId=null;
 let budget=1500, currentTheme="light", accentHex=null, delPending=null, delTimer=null;
-const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');};
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');}
 let curYear="全部", curMonth="全部";
 const THEMES={
   light:{name:"浅色",bg:"#fdf5ea",bg2:"#f8ead6",card:"#ffffff",card2:"#fbefdd",line:"#ecd6bb",txt:"#2c1c12",sub:"#7a5e4a",dim:"#a98d75",gold:"#e8a11f",gold2:"#f4b733",wine:"#d5342f",wine2:"#e85a4f",teal:"#2f9e8f",purple:"#9b5fc7",green:"#4f9e5b",blue:"#3f7fc7"},
@@ -1632,7 +1632,7 @@ function clearCache(){
     }).catch(()=>location.reload(true));
   } else location.reload(true);
 }
-const APP_VERSION='2026.07.19-11';
+const APP_VERSION='2026.07.19-12';
 init();
 </script>
 </body>
