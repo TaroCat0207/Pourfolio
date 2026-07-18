@@ -243,9 +243,10 @@
   .sheet.show{transform:translateY(0);}
   .sheet::-webkit-scrollbar{width:0;}
   .sheet .grip{width:40px;height:4px;border-radius:3px;background:var(--line);margin:11px auto 4px;}
-  .sheet .sh-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;}
+  .sheet .sh-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;position:sticky;top:0;background:var(--bg2);z-index:5;}
   .sheet .sh-hd h3{margin:0;font-size:17px;}
-  .sheet .sh-hd .x{font-size:20px;color:var(--dim);cursor:pointer;padding:4px;}
+  .sheet .sh-hd .x{font-size:20px;color:var(--dim);cursor:pointer;padding:10px;min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;transition:background .15s;}
+  .sheet .sh-hd .x:active{background:var(--card2);}
   .form{padding:0 20px 24px;}
   .field{margin-bottom:15px;}
   .field label{display:block;font-size:12px;color:var(--sub);margin-bottom:7px;font-weight:600;}
@@ -508,7 +509,7 @@
       </div>
       <div class="menu">
         <div class="mi"><span class="ic">📤</span>导出数据 (JSON / CSV)<span class="ar">›</span></div>
-        <div class="mi" onclick="openColl('coll-friends');setTimeout(()=>document.getElementById('friend-list').scrollIntoView({behavior:'smooth'}),60)"><span class="ic">👥</span>好友管理<span class="ar">›</span></div>
+        <div class="mi" onclick="openFriendMgr()"><span class="ic">👥</span>好友管理<span class="ar">›</span></div>
         <div class="mi" onclick="toast('大众点评同步为远期规划，敬请期待')"><span class="ic">🔗</span>大众点评同步<span class="ar" style="color:var(--dim);font-size:11px;">远期 ›</span></div>
         <div class="mi" onclick="openSettings()"><span class="ic">⚙️</span>设置<span class="ar">›</span></div>
       </div>
@@ -1381,15 +1382,18 @@ function renderFriends(){
   const kw=kwEl?kwEl.value.trim().toLowerCase():"";
   const list=friends.filter(f=>!kw||f.toLowerCase().includes(kw));
   if(!list.length){wrap.innerHTML='<div class="empty">'+(kw?"没有匹配的好友":"还没有好友，记一杯「他人请我 / 我请别人」即可自动收录")+'</div>';return;}
-  wrap.innerHTML=list.map(name=>{
-    const s=friendStats(name);
-    return `<div class="ck" style="cursor:pointer;" onclick="openFriend('${name.replace(/'/g,"\\'")}')">
+  wrap.innerHTML=list.map(friendCardHTML).join("");
+}
+function friendCardHTML(name){
+  const s=friendStats(name);
+  const esc=name.replace(/'/g,"\\'");
+  return `<div class="ck" style="cursor:pointer;" onclick="openFriend('${esc}')">
       <div class="body">
         <div class="ck-top" style="align-items:center;">
           <div class="ck-nm" style="font-size:15px;font-weight:800;color:var(--txt);">👤 ${name}</div>
           <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-            <span class="view-ic" onclick="event.stopPropagation();openFriend('${name.replace(/'/g,"\\'")}')">查看交互 ›</span>
-            <span class="ck-ic del" onclick="event.stopPropagation();delClick('friend','${name.replace(/'/g,"\\'")}',this)">${ICON_TRASH}</span>
+            <span class="view-ic" onclick="event.stopPropagation();openFriend('${esc}')">查看交互 ›</span>
+            <span class="ck-ic del" onclick="event.stopPropagation();delClick('friend','${esc}',this)">${ICON_TRASH}</span>
           </div>
         </div>
         <div class="meta" style="margin-top:7px;gap:14px;font-size:12px;padding-left:20px;">
@@ -1398,7 +1402,24 @@ function renderFriends(){
           <span style="color:var(--dim);">共 ${s.iCount+s.heCount} 次</span>
         </div>
       </div></div>`;
-  }).join("");
+}
+function openFriendMgr(){
+  closeAll();
+  document.getElementById('friend-sh-name').textContent='👥 好友管理';
+  document.getElementById('friend-sh-body').innerHTML=
+    '<div style="padding:0 0 10px;"><input id="friend-mgr-search" placeholder="🔍 搜索好友名字…" oninput="renderFriendMgr()" style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--txt);font-size:13px;outline:none;" /></div>'+
+    '<div id="friend-mgr-list" style="padding-bottom:8px;"></div>';
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('friend-sheet').classList.add('show');
+  renderFriendMgr();
+}
+function renderFriendMgr(){
+  const wrap=document.getElementById("friend-mgr-list");if(!wrap)return;
+  const kwEl=document.getElementById("friend-mgr-search");
+  const kw=kwEl?kwEl.value.trim().toLowerCase():"";
+  const list=friends.filter(f=>!kw||f.toLowerCase().includes(kw));
+  if(!list.length){wrap.innerHTML='<div class="empty">'+(kw?"没有匹配的好友":"还没有好友，记一杯「他人请我 / 我请别人」即可自动收录")+'</div>';return;}
+  wrap.innerHTML=list.map(friendCardHTML).join("");
 }
 function openFriend(name){
   const s=friendStats(name);
@@ -1685,7 +1706,7 @@ function clearCache(){
     }).catch(()=>location.reload(true));
   } else location.reload(true);
 }
-const APP_VERSION='2026.07.19-14';
+const APP_VERSION='2026.07.19-15';
 init();
 </script>
 </body>
