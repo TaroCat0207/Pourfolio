@@ -697,6 +697,12 @@
           <button onclick="clearCache()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--txt);font-size:13px;cursor:pointer;">清除缓存并刷新</button>
         </div>
         <div style="font-size:11px;color:var(--dim);line-height:1.5;">若改动迟迟不生效，点「清除缓存并刷新」即可强制拉取最新版，无需卸载重装。</div>
+        <div style="display:flex;gap:10px;" id="install-row" hidden>
+          <button onclick="triggerInstall()" style="flex:1;padding:12px;border:none;border-radius:11px;background:var(--gold);color:#1a1a1a;font-size:13px;cursor:pointer;font-weight:600;">安装到桌面 · 像 App 一样使用</button>
+        </div>
+        <div id="ios-install-hint" style="font-size:11px;color:var(--dim);line-height:1.6;display:none;padding:8px 10px;border:1px dashed var(--line);border-radius:9px;">
+          <b style="color:var(--txt);">iPhone 安装方法</b><br>点 Safari 底部「分享」按钮 ▢↑ → 选「添加到主屏幕」，即可从桌面图标直接打开，全屏无浏览器边框。
+        </div>
       </div>
     </div>
   </div>
@@ -1614,6 +1620,44 @@ async function init(){
       }).catch(()=>{});
     }
   }
+  /* PWA 安装入口检测：
+     - iOS 不支持 beforeinstallprompt → 显示文字指引
+     - 已安装（standalone 模式）→ 隐藏安装按钮 */
+  const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(installed){
+    const ir=document.getElementById('install-row');if(ir)ir.hidden=true;
+  }else{
+    const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!/crios|fxios/i.test(navigator.userAgent);
+    const iosHint=document.getElementById('ios-install-hint');
+    if(iosHint&&isIOS)iosHint.style.display='block';
+  }
+}
+/* PWA 安装提示：捕获 beforeinstallprompt，提供常驻安装按钮
+   - 解决"误点关闭后浏览器不再自动弹原生提示"的问题：用户随时可点按钮重新触发安装
+   - iOS Safari 不支持 beforeinstallprompt，改用文字指引（init 中检测并显示） */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  const row=document.getElementById('install-row');
+  if(row)row.hidden=false;
+});
+window.addEventListener('appinstalled',()=>{
+  deferredPrompt=null;
+  const row=document.getElementById('install-row');
+  if(row)row.hidden=true;
+  toast('已安装到桌面 ✓ 以后可从桌面图标直接打开');
+});
+function triggerInstall(){
+  if(!deferredPrompt){toast('当前浏览器暂不支持一键安装，请用浏览器菜单「添加到主屏幕」');return;}
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(res=>{
+    if(res.outcome==='accepted')toast('安装中…稍后桌面将出现 Pourfolio 图标');
+    else toast('已取消，可随时再点「安装到桌面」按钮重试');
+    deferredPrompt=null;
+    const row=document.getElementById('install-row');
+    if(row)row.hidden=true;
+  }).catch(()=>{});
 }
 function checkUpdate(){
   /* CloudStudio 不启用 SW，直接硬刷新即可拉取最新页面 */
@@ -1632,7 +1676,7 @@ function clearCache(){
     }).catch(()=>location.reload(true));
   } else location.reload(true);
 }
-const APP_VERSION='2026.07.19-12';
+const APP_VERSION='2026.07.19-13';
 init();
 </script>
 </body>
