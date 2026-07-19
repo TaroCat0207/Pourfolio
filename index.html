@@ -361,7 +361,7 @@
 .bl-status.done{background:rgba(91,191,122,.16);color:#9be3af;border:1px solid rgba(91,191,122,.3);}
 .bl-status.want{background:rgba(138,122,112,.14);color:var(--sub);border:1px solid var(--line);}
 /* bar module: indented body + small action icons (same size as status) */
-.ck.barlog .body{padding:12px 16px;}
+.ck.barlog .body{padding:12px 16px;flex:1;min-width:0;}
 .ck.barlog .ck-top{margin-bottom:6px;}
 .ck.barlog .b-sub{font-size:11px;color:var(--sub);margin-top:6px;}
 .bl-log{border-top:1px solid var(--line);margin-top:10px;padding-top:8px;}
@@ -587,6 +587,9 @@
       <div class="field"><label>喜好评分</label><div class="stars-pick" id="f-stars">
         <span class="s on" data-v="1" onclick="pickStar(1)">★</span><span class="s on" data-v="2" onclick="pickStar(2)">★</span><span class="s on" data-v="3" onclick="pickStar(3)">★</span><span class="s on" data-v="4" onclick="pickStar(4)">★</span><span class="s" data-v="5" onclick="pickStar(5)">★</span>
       </div></div>
+      <div class="field"><label>酒吧评分（本次到访，可选）</label><div class="stars-pick" id="f-bar-stars">
+        <span class="s" data-v="1" onclick="pickBarVisitStar(1)">★</span><span class="s" data-v="2" onclick="pickBarVisitStar(2)">★</span><span class="s" data-v="3" onclick="pickBarVisitStar(3)">★</span><span class="s" data-v="4" onclick="pickBarVisitStar(4)">★</span><span class="s" data-v="5" onclick="pickBarVisitStar(5)">★</span>
+      </div></div>
       <div class="field"><label>品鉴笔记</label><textarea id="f-note" placeholder="香气、口感、平衡度、当下的心情…"></textarea></div>
       <button class="btn-primary" id="add-save" onclick="saveDrink()">保存 · 即时更新花销</button>
     </div>
@@ -668,6 +671,13 @@
     <div class="grip"></div>
     <div class="sh-hd"><h3 id="friend-sh-name">同饮好友</h3><span class="x" onclick="closeAll()">✕</span></div>
     <div class="form" id="friend-sh-body"></div>
+  </div>
+
+  <!-- bar detail sheet: 该酒吧喝过的所有鸡尾酒 -->
+  <div class="sheet" id="bar-detail-sheet">
+    <div class="grip"></div>
+    <div class="sh-hd"><h3 id="bar-detail-name">酒吧详情</h3><span class="x" onclick="closeAll()">✕</span></div>
+    <div class="form" id="bar-detail-body"></div>
   </div>
 
   <!-- settings sheet -->
@@ -776,7 +786,7 @@ function addFriend(n){n=(n||"").trim();if(n&&!friends.includes(n))friends.push(n
 function renderFriendDatalist(){const d=document.getElementById('friend-datalist');if(d)d.innerHTML=friends.map(f=>`<option>${f}</option>`).join("");}
 
 /* ------------- state ------------- */
-let mode="personal", curFilter="全部", sortDim="time", sortOrd="desc", rankExpanded=false, newSrc="SELF", newStars=4, newFlavors=[], myFlavors=[], newPhoto=null, treatedType="friend", editId=null;
+let mode="personal", curFilter="全部", sortDim="time", sortOrd="desc", rankExpanded=false, newSrc="SELF", newStars=4, newFlavors=[], myFlavors=[], newPhoto=null, treatedType="friend", editId=null, barVisitStars=0;
 let budget=1500, currentTheme="light", accentHex=null, delPending=null, delTimer=null;
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');}
 let curYear="全部", curMonth="全部";
@@ -1068,13 +1078,13 @@ function toggleRank(){rankExpanded=!rankExpanded;renderRankList();}
 
 /* ------------- bars & fav on me page ------------- */
 function barCardHTML(b){return `
-    <div class="ck barlog" style="cursor:default;">
+    <div class="ck barlog" onclick="openBarDetail(${b.id})">
       <div class="body">
         <div class="ck-top" style="align-items:center;">
           <div class="ck-nm" style="font-size:15px;font-weight:800;color:var(--txt);">${b.name} ${b.fav?'<span style="font-size:12px;">❤️</span>':''}</div>
           <div class="bar-acts">
             <span class="bl-status done">${ICON_CHECK}已打卡</span>
-            <span class="mini-ic del" title="删除" onclick="delClick('barcard',${b.id},this)">${ICON_TRASH}</span>
+            <span class="mini-ic del" title="删除" onclick="event.stopPropagation();delClick('barcard',${b.id},this)">${ICON_TRASH}</span>
           </div>
         </div>
         <div class="meta" style="align-items:center;gap:6px;font-size:11px;color:var(--sub);"><span class="bloc">${ICON_PIN}${b.loc||"—"}</span></div>
@@ -1085,7 +1095,7 @@ function barCardHTML(b){return `
             <div class="bl-log-hd">${l.date||""} 打卡</div>
             <div class="meta" style="margin-top:3px;color:var(--gold);">${l.stars?stars(l.stars):"—"}</div>
           </div>`).join(""):""}
-        <div style="margin-top:10px;display:flex;justify-content:flex-end;"><span class="mini-ic pen" title="编辑" onclick="openBarLog(${b.id},true)">${ICON_PEN}</span></div>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;"><span class="mini-ic pen" title="编辑" onclick="event.stopPropagation();openBarLog(${b.id},true)">${ICON_PEN}</span></div>
       </div></div>`;
 }
 function favCardHTML(d){return `
@@ -1104,6 +1114,36 @@ function renderMyBars(){
   const kw=kwEl?kwEl.value.trim().toLowerCase():"";
   const list=kw?bars.filter(b=>b.name.toLowerCase().includes(kw)):bars;
   wrap.innerHTML=list.length?list.map(barCardHTML).join(""):'<div class="empty">没有匹配的已打卡酒吧</div>';
+}
+// 酒吧详情：展示在这个酒吧喝过的所有鸡尾酒（图片+名称+饮用日期，多次引用全部标注）
+function openBarDetail(id){
+  const b=bars.find(x=>x.id===id);if(!b)return;
+  const list=drinks.filter(d=>d.bar===b.name).sort((a,c)=>c.date.localeCompare(a.date));
+  document.getElementById('bar-detail-name').textContent=b.name+" · 喝过的酒";
+  const body=document.getElementById('bar-detail-body');
+  const info=`
+    <div class="bar-detail-info" style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--sub);line-height:1.7;">
+        <span class="bloc">${ICON_PIN}${b.loc||"—"}</span> · 去过 <b style="color:var(--txt);">${b.visits||0}</b> 次<br>
+        累计评分 ${b.overall?stars(b.overall):"—"} · 共记录 <b style="color:var(--txt);">${list.length}</b> 杯鸡尾酒
+      </div>
+    </div>`;
+  const cards=list.length?list.map(d=>{
+    return `<div class="ck" onclick="closeAll();openDetail(${d.id})" style="margin-bottom:10px;">
+      <div class="ck-photo" style="background-image:url('${d.img}')"></div>
+      <div class="ck-body">
+        <div class="ck-top"><div class="ck-nm">${d.name}</div><div class="ck-acts"><span class="stars" style="font-size:13px;">${stars(d.stars)}</span></div></div>
+        <div class="ck-meta"><span class="abv">${d.base} · ${d.abv}%</span></div>
+        <div class="tags"><span class="tag">${d.date}</span></div>
+      </div></div>`;
+  }).join(""):'<div class="empty">在这个酒吧还没有鸡尾酒记录</div>';
+  body.innerHTML=info+cards+
+    `<div style="margin-top:14px;display:flex;gap:8px;">
+      <button class="btn-primary" onclick="event.stopPropagation();closeAll();openBarLog(${b.id},true)" style="flex:1;">编辑酒吧</button>
+      <button class="btn-primary" onclick="event.stopPropagation();closeAll();openAddForm(null);document.getElementById('f-bar').value='${b.name.replace(/'/g,"\\'")}';" style="flex:1;">在这里记一杯</button>
+    </div>`;
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('bar-detail-sheet').classList.add('show');
 }
 function renderMe(){
   const favs=drinks.filter(d=>d.fav);
@@ -1162,17 +1202,23 @@ function fillForm(d){
   document.getElementById('add-title').textContent="编辑记录";
   document.getElementById('add-save').textContent="保存修改";
 }
-function syncBarOnSave(bar,date){
+function syncBarOnSave(bar,date,rating,isEdit){
+  // 编辑已有鸡尾酒记录时，不重复追加酒吧打卡（酒吧打卡独立管理，避免改笔记就重复打卡）
+  if(isEdit)return;
   if(bar==="未记录酒吧")return;
+  const r=rating||0;
   const ex=bars.find(b=>b.name===bar);
   if(!ex){
-    bars.unshift({id:Date.now(),name:bar,loc:"—",overall:0,visits:1,myTotal:0,tableTotal:0,fav:false,logs:[{date:date||"",stars:0,review:"",photos:[],desc:""}]});
-    toast("新酒吧已加入已打卡列表 ✓");
+    bars.unshift({id:Date.now(),name:bar,loc:"—",overall:r,visits:1,myTotal:0,tableTotal:0,fav:false,logs:[{date:date||"",stars:r,review:"",photos:[],desc:""}]});
+    toast(r?("新酒吧已加入已打卡列表，本次评分 "+r+"★ ✓"):"新酒吧已加入已打卡列表 ✓");
   } else {
     ex.logs=ex.logs||[];
-    ex.logs.push({date:date||"",stars:ex.overall||0,review:"",photos:[],desc:""});
+    ex.logs.push({date:date||"",stars:r,review:"",photos:[],desc:""});
     ex.visits=(ex.visits||0)+1;
-    toast("已自动追加打卡记录 ✓");
+    // overall 取所有打卡评分的平均（本次也参与）
+    const rated=ex.logs.filter(l=>l.stars>0);
+    if(rated.length)ex.overall=Math.round(rated.reduce((s,l)=>s+l.stars,0)/rated.length*10)/10;
+    toast(r?("已追加打卡记录，本次评分 "+r+"★ ✓"):"已追加打卡记录（本次未评分，可在酒吧日志中补评）✓");
   }
   if(document.getElementById("page-bar").classList.contains("active"))renderBarLog();
 }
@@ -1261,6 +1307,7 @@ function removeFlavor(i){newFlavors.splice(i,1);renderFlavorChips();renderFlavor
 function renderFlavorChips(){document.getElementById('f-flavors').innerHTML=newFlavors.map((f,i)=>`<span class="chip on" onclick="removeFlavor(${i})">${f} <span style="opacity:.55;font-size:10px;">✕</span></span>`).join("");}
 function renderFlavorSuggest(){const wrap=document.getElementById('f-flavor-suggest');if(!wrap)return;const sug=myFlavors.filter(f=>!newFlavors.includes(f));wrap.innerHTML=sug.length?`<span style="width:100%;font-size:11px;color:var(--dim);margin-bottom:2px;">我的风味（点击直接添加）</span>`+sug.map(f=>`<span class="chip" onclick="addExistingFlavor('${f.replace(/'/g,"\\'")}')">${f}</span>`).join(""):"";}
 function pickStar(v){newStars=v;document.querySelectorAll('#f-stars .s').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.v)<=v));}
+function pickBarVisitStar(v){barVisitStars=(barVisitStars===v)?0:v;document.querySelectorAll('#f-bar-stars .s').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.v)<=barVisitStars));}
 async function saveDrink(){
   const name=document.getElementById('f-name').value.trim()||"未命名鸡尾酒";
   const bar=document.getElementById('f-bar').value.trim()||"未记录酒吧";
@@ -1294,7 +1341,7 @@ async function saveDrink(){
   } else {
     drinks.unshift(nd);
   }
-  syncBarOnSave(bar,date);
+  syncBarOnSave(bar,date,barVisitStars,editId===null?false:true);
   closeAll();resetForm();await saveState();await resolveImgRefs();
   renderTimeline();renderSpend();renderFilters();
   if(document.getElementById('page-bar').classList.contains('active'))renderBarLog();
@@ -1317,6 +1364,7 @@ function resetForm(){
   newSrc="SELF";document.querySelectorAll('#src-pick .sp').forEach((x,i)=>x.classList.toggle('on',i===0));
   document.querySelector('#price-field label').textContent="价格 (¥)";
   pickStar(4);document.getElementById('f-price').disabled=false;document.getElementById('price-field').style.opacity=1;
+  barVisitStars=0;document.querySelectorAll('#f-bar-stars .s').forEach(s=>s.classList.remove('on'));
 }
 
 /* ------------- detail / share ------------- */
@@ -1358,8 +1406,24 @@ function openDetail(id){
   document.getElementById('mask').classList.add('show');sheet.classList.add('show');
 }
 function toggleFav(id){const d=drinks.find(x=>x.id===id);if(d){d.fav=!d.fav;openDetail(id);renderTimeline();renderSpend();toast(d.fav?"已加入收藏 ❤️":"已取消收藏");saveState();}}
-function reorder(id){const d=drinks.find(x=>x.id===id);if(!d)return;closeAll();
-  const nd={...d,id:Date.now(),date:todayStr(),day:"今天",note:d.note};drinks.unshift(nd);renderTimeline();renderSpend();toast("已复用「"+d.name+"」再记一杯 ✓");}
+function reorder(id){const d=drinks.find(x=>x.id===id);if(!d)return;closeAll();openAddForm(null);
+  // 预填该酒信息，但作为新记录（editId=null），让用户确认/修改日期等
+  document.getElementById('f-name').value=d.name||"";
+  document.getElementById('f-bar').value=d.bar||"";
+  document.getElementById('f-base').value=d.base||"";
+  document.getElementById('f-abv').value=d.abv||"";
+  document.getElementById('f-price').value=d.price||0;
+  document.getElementById('f-date').value=todayStr();
+  document.getElementById('f-note').value=(d.note&&d.note!=="（暂无笔记）")?d.note:"";
+  newFlavors=[...(d.flavors||[])].filter(f=>f!=="未标注");renderFlavorChips();renderFlavorSuggest();
+  newPhoto=d.img||null;
+  const pp=document.getElementById('f-photo-prev');
+  if(newPhoto){pp.style.backgroundImage="url('"+newPhoto+"')";pp.innerHTML="";}
+  pickStar(d.stars||4);
+  document.getElementById('add-title').textContent="再来一杯 🍸";
+  document.getElementById('add-save').textContent="保存 · 即时更新花销";
+  toast("已填入「"+d.name+"」信息，请确认日期后保存");
+}
 function drill(label){toast("下钻 · "+label+" 明细（Demo）");}
 
 /* ------------- friend interaction ledger ------------- */
@@ -1694,7 +1758,7 @@ function clearCache(){
     }).catch(()=>location.reload(true));
   } else location.reload(true);
 }
-const APP_VERSION='2026.07.19-17';
+const APP_VERSION='2026.07.19-18';
 init();
 </script>
 </body>
