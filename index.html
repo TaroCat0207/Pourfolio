@@ -895,7 +895,8 @@ function renderSpend(){
   document.getElementById("me-total").textContent=drinks.length;
   document.getElementById("me-cups").textContent=drinks.filter(d=>d.source!=="TASTE").length;
   document.getElementById("me-bars").textContent=bars.length;
-  document.getElementById("me-fav").textContent=drinks.filter(d=>d.fav).length;
+  const _fk=new Set();drinks.filter(d=>d.fav).forEach(d=>_fk.add(d.bar+"|"+d.name));
+  document.getElementById("me-fav").textContent=_fk.size;
   document.getElementById("cnt-week").textContent=drinks.filter(d=>d.day==="今天"||d.date>="2026-07-13").length;
 }
 function setMode(m,btn){mode=m;document.querySelectorAll('.mode-switch button[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));renderSpend();}
@@ -1146,7 +1147,10 @@ function openBarDetail(id){
   document.getElementById('bar-detail-sheet').classList.add('show');
 }
 function renderMe(){
-  const favs=drinks.filter(d=>d.fav);
+  // 去重：同一酒吧同一杯酒只显示一次，取最近一条记录
+  const favSeen=new Map();
+  drinks.filter(d=>d.fav).forEach(d=>{const k=d.bar+"|"+d.name;if(!favSeen.has(k)||d.date>favSeen.get(k).date)favSeen.set(k,d);});
+  const favs=[...favSeen.values()];
   document.getElementById("fav-list").innerHTML=favs.length?favs.map(favCardHTML).join(""):'<div class="empty">还没有收藏</div>';
   const fb=bars.filter(b=>b.fav);
   document.getElementById("fav-bars-list").innerHTML=fb.length?fb.map(barCardHTML).join(""):'<div class="empty">还没有收藏的酒吧，去酒吧模块看看</div>';
@@ -1323,7 +1327,8 @@ async function saveDrink(){
   let img;
   if(newPhoto){const id=await storeImage(newPhoto);img='id:'+id;}
   else{img=imgPool[Math.floor(Math.random()*imgPool.length)];}
-  const nd={id:Date.now(),name,bar,base,abv,price,source:newSrc,flavors:flavors.length?flavors:["未标注"],stars:newStars,fav:false,note,img,date,day};
+  const inheritFav=drinks.some(x=>x.bar===bar&&x.name===name&&x.fav);
+  const nd={id:Date.now(),name,bar,base,abv,price,source:newSrc,flavors:flavors.length?flavors:["未标注"],stars:newStars,fav:inheritFav,note,img,date,day};
   if(newSrc==="TREATED"){nd.treatedType=treatedType;if(treatedType==="friend"){const nb=document.getElementById('f-treated-by').value.trim();nd.treatedBy=nb;addFriend(nb);}}
   if(newSrc==="TREAT_OTHERS"){const nw=document.getElementById('f-treat-whom').value.trim();nd.treatedWhom=[nw];addFriend(nw);}
   if(editId){
@@ -1405,7 +1410,10 @@ function openDetail(id){
     </div>`;
   document.getElementById('mask').classList.add('show');sheet.classList.add('show');
 }
-function toggleFav(id){const d=drinks.find(x=>x.id===id);if(d){d.fav=!d.fav;openDetail(id);renderTimeline();renderSpend();toast(d.fav?"已加入收藏 ❤️":"已取消收藏");saveState();}}
+function toggleFav(id){const d=drinks.find(x=>x.id===id);if(!d)return;
+  const nf=!d.fav;
+  drinks.forEach(x=>{if(x.bar===d.bar&&x.name===d.name)x.fav=nf;});
+  openDetail(id);renderTimeline();renderSpend();toast(nf?"已加入收藏 ❤️":"已取消收藏");saveState();}
 function reorder(id){const d=drinks.find(x=>x.id===id);if(!d)return;closeAll();openAddForm(null);
   // 预填该酒信息，但作为新记录（editId=null），让用户确认/修改日期等
   document.getElementById('f-name').value=d.name||"";
@@ -1758,7 +1766,7 @@ function clearCache(){
     }).catch(()=>location.reload(true));
   } else location.reload(true);
 }
-const APP_VERSION='2026.07.19-19';
+const APP_VERSION='2026.07.19-20';
 init();
 </script>
 </body>
