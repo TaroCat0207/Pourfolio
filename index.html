@@ -483,7 +483,7 @@
     <!-- ===== 我的 ===== -->
     <div class="page" id="page-me">
       <div class="hd"><h1>我的</h1></div>
-      <div class="prof-head"><div class="av">🥃</div><div><div class="nm">我的 pourfolio-个人鸡尾酒记录</div><div class="st">加入 <span id="me-days">0</span> 天 · 记录 <span id="me-total">0</span> 杯</div></div></div>
+      <div class="prof-head"><div class="av">🥃</div><div><div class="nm">我的 pourfolio-个人鸡尾酒记录</div><div class="st">记录 <span id="me-total">0</span> 杯</div></div></div>
       <div class="grid2">
         <div class="stat"><div class="v" id="me-personal">¥0</div><div class="k">个人消费累计</div></div>
         <div class="stat"><div class="v" id="me-cups">0</div><div class="k">实饮杯数</div></div>
@@ -886,9 +886,6 @@ function renderSpend(){
   document.getElementById("me-cups").textContent=drinks.filter(d=>d.source!=="TASTE").length;
   document.getElementById("me-bars").textContent=bars.length;
   document.getElementById("me-fav").textContent=drinks.filter(d=>d.fav).length;
-  const firstDate=drinks.length?drinks.map(d=>d.date).sort()[0]:null;
-  const days=firstDate?Math.max(0,Math.floor((Date.now()-new Date(firstDate))/86400000))+1:0;
-  const mdEl=document.getElementById("me-days");if(mdEl)mdEl.textContent=days;
   document.getElementById("cnt-week").textContent=drinks.filter(d=>d.day==="今天"||d.date>="2026-07-13").length;
 }
 function setMode(m,btn){mode=m;document.querySelectorAll('.mode-switch button[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));renderSpend();}
@@ -1706,7 +1703,7 @@ function clearCache(){
     }).catch(()=>location.reload(true));
   } else location.reload(true);
 }
-const APP_VERSION='2026.07.19-15';
+const APP_VERSION='2026.07.19-16';
 init();
 </script>
 </body>
