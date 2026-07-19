@@ -520,9 +520,9 @@
   <!-- tabbar -->
   <div class="tabbar">
     <div class="tb on" data-p="log" onclick="go('log',this)"><span class="ic">📖</span>记录</div>
-    <div class="tb" data-p="data" onclick="go('data',this)"><span class="ic">📊</span>数据</div>
-    <div class="tb compose" onclick="openAdd()"><span class="ic">＋</span>记一杯</div>
     <div class="tb" data-p="bar" onclick="go('bar',this)"><span class="ic">🍸</span>酒吧</div>
+    <div class="tb compose" onclick="openAdd()"><span class="ic">＋</span>记一杯</div>
+    <div class="tb" data-p="data" onclick="go('data',this)"><span class="ic">📊</span>数据</div>
     <div class="tb" data-p="me" onclick="go('me',this)"><span class="ic">👤</span>我的</div>
   </div>
 
@@ -954,7 +954,7 @@ function renderTimeline(){
   if(sortDim==="time"){
     let html="",lastDay="";
     list.forEach(d=>{
-      if(d.day!==lastDay){html+=`<div class="tl-day">${d.day==="今天"?"今天 · 07/18":d.date}</div>`;lastDay=d.day;}
+      if(d.day!==lastDay){html+=`<div class="tl-day">${d.day==="今天"?"今天 · "+todayStr().slice(5).replace("-","/"):d.date}</div>`;lastDay=d.day;}
       html+=drinkCardHTML(d);
     });
     wrap.innerHTML=html;
@@ -1758,7 +1758,7 @@ function clearCache(){
     }).catch(()=>location.reload(true));
   } else location.reload(true);
 }
-const APP_VERSION='2026.07.19-18';
+const APP_VERSION='2026.07.19-19';
 init();
 </script>
 </body>
